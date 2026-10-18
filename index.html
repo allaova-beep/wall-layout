@@ -402,7 +402,7 @@
     <!-- ШАПКА С УПРАВЛЕНИЕМ БАЗОЙ ЗАМЕРОВ И БЫСТРОЙ СВОДКОЙ -->
     <header class="app-header">
       <div class="brand">
-        <div class="brand-logo no-invert">Т</div>
+        <img src="./ako-logo.png" alt="AKO Sound" class="no-invert" style="width:40px; height:40px; border-radius:50%; flex:0 0 auto;">
         <div>
           <div style="font-weight:900; font-size:16px; line-height:1.2;">Монтажник Т-1000</div>
           <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#c9ad8f;">
@@ -1311,7 +1311,7 @@
       </div>
 
       <div id="printSheet" style="background:#1b110a; padding:14px; border-radius:10px; border:1px solid #4d3219; font-size:12px; display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;"><b style="background:#6610f2; color:#fff; padding:3px 8px; border-radius:5px;">AKO Sound</b><span>ako-sound.ru • +7 (499) 647-62-88 • Производство: Электроугли</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;"><span style="display:flex; align-items:center; gap:6px;"><img src="./ako-logo.png" alt="" style="width:34px; height:34px; border-radius:50%;"><b>AKO Sound</b></span><span>ako-sound.ru • +7 (499) 647-62-88 • Производство: Электроугли</span></div>
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #3a2412; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div>
             <div style="font-size:15px; font-weight:800;" id="mTitle">Заказ №101 от 15.09.2026</div>
@@ -4064,8 +4064,8 @@
       let y = M;
       // шапка компании
       ctx.fillStyle = '#1b110a'; ctx.fillRect(0, 0, W, 64);
-      ctx.fillStyle = '#6610f2'; ctx.fillRect(M, 14, 150, 36);
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('AKO Sound', M + 18, 39);
+      try { const lg = await loadImg('./ako-logo.png'); ctx.drawImage(lg, M, 6, 52, 52); } catch (e) {}
+      ctx.fillStyle = '#ffcf98'; ctx.font = 'bold 22px sans-serif'; ctx.fillText('AKO Sound', M + 64, 40);
       ctx.fillStyle = '#ffcf98'; ctx.font = '18px sans-serif'; ctx.textAlign = 'right';
       ctx.fillText(COMPANY.site + '  •  ' + COMPANY.phone, W - M, 39); ctx.textAlign = 'left';
       y = 64 + 60; ctx.fillStyle = '#111';

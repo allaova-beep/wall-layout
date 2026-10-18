@@ -1,5 +1,5 @@
 // Service Worker для 100% офлайн работы приложения ПанельПро (Т-1000)
-const CACHE_NAME = 'panelpro-cache-v6';
+const CACHE_NAME = 'panelpro-cache-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   './icon-maskable-512.png',
   './icon.svg',
   './html2pdf.bundle.min.js',
+  './ako-logo.png',
   './textures/felt-graphite.jpg',
   './textures/caramel.jpg',
   './textures/floral-pink.jpg',
