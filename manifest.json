@@ -3,8 +3,8 @@
   "short_name": "Т-1000",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#2563eb",
+  "background_color": "#1b110a",
+  "theme_color": "#1b110a",
   "orientation": "any",
   "icons": [
     {

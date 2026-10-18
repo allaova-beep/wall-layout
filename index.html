@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Монтажник Т-1000</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#090e1a">
+  <meta name="theme-color" content="#1b110a">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -21,27 +21,27 @@
   </script>
   <script src="./html2pdf.bundle.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #080d1a; color: #f8fafc; font-size: 13px; line-height: 1.4; -webkit-tap-highlight-color: transparent; padding-bottom: 24px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Avenir Next Cyr", "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #080d1a; color: #fff7ee; font-size: 13px; line-height: 1.4; -webkit-tap-highlight-color: transparent; padding-bottom: 24px; }
     
     .app-wrapper { width: 100%; max-width: 1400px; margin: 0 auto; padding: 10px; }
     
     /* Карточки */
-    .card { background-color: #131d31; border: 1px solid #25334d; border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.35); margin-bottom: 12px; }
-    .card-title { font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1e2c45; padding-bottom: 8px; }
+    .card { background-color: #2a190c; border: 1px solid #4d3219; border-radius: 14px; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.35); margin-bottom: 12px; }
+    .card-title { font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #4d3219; padding-bottom: 8px; }
     
     /* Шапка */
-    .app-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #25334d; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #4d3219; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
     .brand { display: flex; align-items: center; gap: 8px; }
-    .brand-logo { background: #2563eb; color: #fff; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; }
+    .brand-logo { background: #6610f2; color: #fff; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; }
     
     /* Инпуты */
-    label { display: block; font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+    label { display: block; font-size: 11px; color: #c9ad8f; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
     input, select, textarea {
       width: 100%; height: 42px; padding: 0 10px;
-      background: #090e1a; border: 1.5px solid #25334d; border-radius: 9px; color: #f8fafc; font-size: 13px; outline: none; transition: all 0.2s;
+      background: #1b110a; border: 1.5px solid #4d3219; border-radius: 9px; color: #fff7ee; font-size: 13px; outline: none; transition: all 0.2s;
     }
-    input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+    input:focus, select:focus { border-color: #ffcf98; box-shadow: 0 0 0 2px rgba(255,207,152,0.2); }
     
     /* Крупные инпуты лазерных замеров */
     .laser-input {
@@ -57,65 +57,65 @@
       width: 100%; height: 44px; border-radius: 11px; font-weight: 800; font-size: 13px; cursor: pointer; border: none; transition: all 0.15s;
     }
     .btn:active { transform: scale(0.98); }
-    .btn-primary { background: #2563eb; color: #ffffff; }
+    .btn-primary { background: #ffcf98; color: #1b110a; }
     .btn-success { background: #10b981; color: #ffffff; }
-    .btn-dark { background: #1c283f; color: #f8fafc; border: 1px solid #2d3e5e; }
-    .btn-amber { background: #d97706; color: #ffffff; }
+    .btn-dark { background: #311c0d; color: #fff7ee; border: 1px solid #5a3b20; }
+    .btn-amber { background: #d06d16; color: #ffffff; }
 
     /* Бейджи */
     .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; font-family: monospace; }
-    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-amber { background: rgba(224, 138, 42, 0.2); color: #ffbc00; border: 1px solid rgba(224, 138, 42, 0.4); }
     .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-    .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .badge-blue { background: rgba(255, 207, 152, 0.2); color: #ffcf98; }
     .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
 
     /* Схема замера */
     .laser-wall-diagram {
-      position: relative; background: #070c18; border: 2px dashed #2d3f63; border-radius: 12px;
+      position: relative; background: #160e08; border: 2px dashed #5a3b20; border-radius: 12px;
       padding: 14px 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
     }
     .laser-line-row {
       display: flex; align-items: center; justify-content: space-between; gap: 6px;
     }
     .laser-arrow-h {
-      flex: 1; height: 2px; background: #3b82f6; position: relative;
+      flex: 1; height: 2px; background: #ffcf98; position: relative;
     }
-    .laser-arrow-h::before { content: "◀"; position: absolute; left: -2px; top: -7px; font-size: 9px; color: #3b82f6; }
-    .laser-arrow-h::after { content: "▶"; position: absolute; right: -2px; top: -7px; font-size: 9px; color: #3b82f6; }
+    .laser-arrow-h::before { content: "◀"; position: absolute; left: -2px; top: -7px; font-size: 9px; color: #ffcf98; }
+    .laser-arrow-h::after { content: "▶"; position: absolute; right: -2px; top: -7px; font-size: 9px; color: #ffcf98; }
 
     .btn-toggle-group {
-      display: flex; background: #090e1a; border: 1px solid #202d44; border-radius: 8px; overflow: hidden;
+      display: flex; background: #1b110a; border: 1px solid #4d3219; border-radius: 8px; overflow: hidden;
     }
     .btn-toggle {
-      flex: 1; height: 34px; background: transparent; border: none; color: #94a3b8; font-size: 11px; font-weight: 700; cursor: pointer;
+      flex: 1; height: 34px; background: transparent; border: none; color: #c9ad8f; font-size: 11px; font-weight: 700; cursor: pointer;
     }
     .btn-toggle.active {
-      background: #2563eb; color: #fff;
+      background: #ffcf98; color: #1b110a;
     }
 
     /* Чертежный холст */
     .canvas-wrapper {
-      background: #050811; border: 1px solid #25334d; border-radius: 10px; padding: 10px; width: 100%; overflow: hidden; display: flex; justify-content: center;
-      background-image: radial-gradient(#1e2c45 1px, transparent 1px); background-size: 14px 14px;
+      background: #140c07; border: 1px solid #4d3219; border-radius: 10px; padding: 10px; width: 100%; overflow: hidden; display: flex; justify-content: center;
+      background-image: radial-gradient(#4d3219 1px, transparent 1px); background-size: 14px 14px;
     }
     svg { width: 100%; height: auto; max-height: 440px; display: block; }
 
     /* Таблицы */
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { text-align: left; padding: 6px 8px; color: #94a3b8; border-bottom: 1px solid #25334d; font-size: 10px; text-transform: uppercase; }
-    td { padding: 6px 8px; border-bottom: 1px solid #162238; }
+    th { text-align: left; padding: 6px 8px; color: #c9ad8f; border-bottom: 1px solid #4d3219; font-size: 10px; text-transform: uppercase; }
+    td { padding: 6px 8px; border-bottom: 1px solid #3a2412; }
 
     /* Интерактивная лента шагов (Мастер замера) */
     .stepper-container {
-      background: #0f172a; border: 1px solid #1e293b; border-radius: 14px;
+      background: #22150c; border: 1px solid #311c0d; border-radius: 14px;
       padding: 6px 10px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
       position: sticky; top: 6px; z-index: 95; backdrop-filter: blur(10px);
     }
     .stepper-progress-bar {
-      height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden; margin-bottom: 8px;
+      height: 4px; background: #311c0d; border-radius: 2px; overflow: hidden; margin-bottom: 8px;
     }
     .stepper-progress-fill {
-      height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); width: 20%;
+      height: 100%; background: linear-gradient(90deg, #ffcf98, #10b981); width: 20%;
       transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .stepper-nav {
@@ -125,23 +125,23 @@
     .step-btn {
       flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 8px;
       padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent;
-      color: #94a3b8; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+      color: #c9ad8f; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
-    .step-btn:hover { background: #1e293b; color: #f1f5f9; }
+    .step-btn:hover { background: #311c0d; color: #f1f5f9; }
     .step-btn.active {
-      background: #1e293b; border-color: #3b82f6; color: #ffffff;
-      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+      background: #311c0d; border-color: #ffcf98; color: #ffffff;
+      box-shadow: 0 2px 10px rgba(255, 207, 152, 0.35);
     }
     .step-btn.completed {
       color: #34d399;
     }
     .step-badge {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 50%; background: #1e293b;
-      color: #94a3b8; font-size: 11px; font-weight: 800; font-family: monospace;
+      width: 22px; height: 22px; border-radius: 50%; background: #311c0d;
+      color: #c9ad8f; font-size: 11px; font-weight: 800; font-family: monospace;
     }
     .step-btn.active .step-badge {
-      background: #2563eb; color: #ffffff;
+      background: #ffcf98; color: #1b110a;
     }
     .step-btn.completed .step-badge {
       background: #10b981; color: #ffffff;
@@ -149,7 +149,7 @@
 
     /* Панель мульти-стен заказа */
     .walls-bar-container {
-      background: #090e1a; border: 1px solid #1e293b; border-radius: 12px;
+      background: #1b110a; border: 1px solid #311c0d; border-radius: 12px;
       padding: 8px 12px; margin-bottom: 14px; display: flex; align-items: center;
       justify-content: space-between; gap: 10px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
@@ -158,17 +158,17 @@
     }
     .wall-tab-pill {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 12px; border-radius: 8px; border: 1px solid #202d44;
-      background: #0f172a; color: #94a3b8; font-size: 12px; font-weight: 700;
+      padding: 6px 12px; border-radius: 8px; border: 1px solid #4d3219;
+      background: #22150c; color: #c9ad8f; font-size: 12px; font-weight: 700;
       cursor: pointer; transition: all 0.2s; user-select: none;
     }
-    .wall-tab-pill:hover { background: #1e293b; color: #f1f5f9; }
+    .wall-tab-pill:hover { background: #311c0d; color: #f1f5f9; }
     .wall-tab-pill.active {
-      background: #1e293b; border-color: #3b82f6; color: #ffffff;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+      background: #311c0d; border-color: #ffcf98; color: #ffffff;
+      box-shadow: 0 2px 8px rgba(255, 207, 152, 0.35);
     }
     .wall-tab-name { display: flex; align-items: center; gap: 6px; }
-    .wall-tab-dim { font-size: 10px; color: #60a5fa; font-weight: normal; font-family: monospace; }
+    .wall-tab-dim { font-size: 10px; color: #ffcf98; font-weight: normal; font-family: monospace; }
     .wall-tab-btn-del {
       display: inline-flex; align-items: center; justify-content: center;
       width: 18px; height: 18px; border-radius: 50%; background: rgba(239, 68, 68, 0.15);
@@ -177,23 +177,23 @@
     .wall-tab-btn-del:hover { background: #ef4444; color: #fff; }
     .btn-add-wall {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 8px; border: 1px dashed #3b82f6;
-      background: rgba(59, 130, 246, 0.08); color: #60a5fa; font-size: 12px; font-weight: 700;
+      padding: 6px 12px; border-radius: 8px; border: 1px dashed #ffcf98;
+      background: rgba(255, 207, 152, 0.08); color: #ffcf98; font-size: 12px; font-weight: 700;
       cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
     .btn-add-wall:hover {
-      background: #2563eb; color: #ffffff; border-style: solid;
+      background: #ffcf98; color: #1b110a; border-style: solid;
     }
 
     /* Подсказка шага */
     .step-banner {
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.08));
-      border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 207, 152, 0.12), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(255, 207, 152, 0.25); border-radius: 12px;
       padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;
       gap: 10px; flex-wrap: wrap;
     }
-    .step-banner-text { font-size: 13px; color: #f8fafc; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .step-banner-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .step-banner-text { font-size: 13px; color: #fff7ee; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .step-banner-sub { font-size: 11px; color: #c9ad8f; margin-top: 2px; }
 
     /* Кнопки перехода между шагами */
     .step-actions {
@@ -211,36 +211,36 @@
 
 
     /* Сворачиваемые блоки */
-    details.adv { background:#090e1a; border:1px solid #202d44; border-radius:10px; padding:8px 10px; margin-top:8px; }
-    details.adv > summary { cursor:pointer; font-size:12px; font-weight:700; color:#94a3b8; list-style:none; }
+    details.adv { background:#1b110a; border:1px solid #4d3219; border-radius:10px; padding:8px 10px; margin-top:8px; }
+    details.adv > summary { cursor:pointer; font-size:12px; font-weight:700; color:#c9ad8f; list-style:none; }
     details.adv > summary::before { content:'▸ '; }
     details.adv[open] > summary::before { content:'▾ '; }
     .card.fold > .card-title { cursor:pointer; }
-    .card.fold > .card-title > span:first-child::before { content:'▾ '; color:#64748b; }
+    .card.fold > .card-title > span:first-child::before { content:'▾ '; color:#9a7a5c; }
     .card.fold.folded > .card-title > span:first-child::before { content:'▸ '; }
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
     /* Примерка на фото */
-    #modalViz { display:none; position:fixed; inset:0; z-index:2300; background:#0b0f19; color:#f8fafc; flex-direction:column; }
+    #modalViz { display:none; position:fixed; inset:0; z-index:2300; background:#1b110a; color:#fff7ee; flex-direction:column; }
     #modalViz.open { display:flex; }
     .vz-head { display:flex; gap:6px; align-items:center; padding:8px; }
     .vz-title { flex:1; font-weight:800; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .vz-b { width:auto !important; min-width:44px; height:44px; padding:0 12px; background:#1e293b; color:#f8fafc; border:1px solid #334155; font-size:13px; }
-    .vz-b.on { background:#d97706; border-color:#f59e0b; }
-    .vz-primary { background:#2563eb !important; border-color:#3b82f6 !important; color:#fff !important; }
-    .vz-hint { padding:4px 10px 6px; font-size:12px; color:#cbd5e1; min-height:22px; }
+    .vz-b { width:auto !important; min-width:44px; height:44px; padding:0 12px; background:#311c0d; color:#fff7ee; border:1px solid #5a3b20; font-size:13px; }
+    .vz-b.on { background:#d06d16; border-color:#e08a2a; }
+    .vz-primary { background:#ffcf98 !important; border-color:#ffcf98 !important; color:#1b110a !important; }
+    .vz-hint { padding:4px 10px 6px; font-size:12px; color:#ead8c3; min-height:22px; }
     .vz-stage { position:relative; flex:1; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#000; touch-action:none; }
     #vzCanvas { max-width:100%; max-height:100%; touch-action:none; }
-    .vz-pick { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:24px; background:#0b0f19; }
+    .vz-pick { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:24px; background:#1b110a; }
     .vz-thumbs { display:flex; gap:8px; overflow-x:auto; margin-top:14px; }
-    .vz-thumbs img { height:72px; border-radius:8px; border:2px solid #334155; cursor:pointer; }
+    .vz-thumbs img { height:72px; border-radius:8px; border:2px solid #5a3b20; cursor:pointer; }
     .vz-tools { padding:8px 8px calc(8px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; }
     .vz-row { display:flex; gap:6px; align-items:center; overflow-x:auto; }
     .vz-row input[type=range] { flex:1; min-width:90px; }
-    .vz-sw { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; color:#cbd5e1; cursor:pointer; }
-    .vz-sw i { width:42px; height:42px; border-radius:10px; border:2px solid #334155; display:block; }
-    .vz-sw.on i { border-color:#f59e0b; box-shadow:0 0 0 2px #f59e0b; }
+    .vz-sw { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; color:#ead8c3; cursor:pointer; }
+    .vz-sw i { width:42px; height:42px; border-radius:10px; border:2px solid #5a3b20; display:block; }
+    .vz-sw.on i { border-color:#e08a2a; box-shadow:0 0 0 2px #e08a2a; }
 
     @media print {
       body.print-labels > *:not(#modalLabels) { display:none !important; }
@@ -250,20 +250,20 @@
       body.print-labels .label-sticker-card { break-inside:avoid; page-break-inside:avoid; }
     }
 
-    #modalSign { display:none; position:fixed; inset:0; z-index:2100; background:#f1f5f9; color:#0f172a; flex-direction:column; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); gap:8px; }
+    #modalSign { display:none; position:fixed; inset:0; z-index:2100; background:#f1f5f9; color:#22150c; flex-direction:column; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); gap:8px; }
     #modalSign.open { display:flex; }
     #modalSign .sg-head { display:flex; justify-content:space-between; align-items:center; }
-    .sg-summary { font-size:13px; color:#334155; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:10px; line-height:1.5; }
-    .sg-agree { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#0f172a; text-transform:none !important; font-weight:700; padding:4px 2px; }
+    .sg-summary { font-size:13px; color:#5a3b20; background:#ffffff; border:1px solid #ead8c3; border-radius:10px; padding:10px; line-height:1.5; }
+    .sg-agree { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#22150c; text-transform:none !important; font-weight:700; padding:4px 2px; }
     .sg-agree input { width:24px; height:24px; flex:0 0 auto; }
-    .sg-padwrap { position:relative; flex:1; min-height:180px; background:#ffffff; border:2px solid #94a3b8; border-radius:12px; overflow:hidden; touch-action:none; }
+    .sg-padwrap { position:relative; flex:1; min-height:180px; background:#ffffff; border:2px solid #c9ad8f; border-radius:12px; overflow:hidden; touch-action:none; }
     #sgPad { position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
-    .sg-hint { position:absolute; left:0; right:0; bottom:28%; text-align:center; color:#94a3b8; font-size:14px; pointer-events:none; border-top:1px dashed #cbd5e1; margin:0 10%; padding-top:6px; }
-    .sg-name { text-align:center; font-size:15px; color:#334155; font-weight:700; }
-    #modalSign .sg-head .btn { background:#e2e8f0; color:#0f172a; border:1px solid #cbd5e1; }
-    #modalSign .sg-actions .btn-dark { background:#e2e8f0; color:#0f172a; border:1px solid #cbd5e1; }
+    .sg-hint { position:absolute; left:0; right:0; bottom:28%; text-align:center; color:#c9ad8f; font-size:14px; pointer-events:none; border-top:1px dashed #ead8c3; margin:0 10%; padding-top:6px; }
+    .sg-name { text-align:center; font-size:15px; color:#5a3b20; font-weight:700; }
+    #modalSign .sg-head .btn { background:#e2e8f0; color:#22150c; border:1px solid #ead8c3; }
+    #modalSign .sg-actions .btn-dark { background:#e2e8f0; color:#22150c; border:1px solid #ead8c3; }
     #modalSign b[style*='34d399'] { color:#047857 !important; }
-    #modalSign a { color:#1d4ed8 !important; }
+    #modalSign a { color:#e8b070 !important; }
     .sg-actions { display:flex; gap:8px; }
     .sg-actions .btn { flex:1; height:52px; font-size:16px; }
 
@@ -284,24 +284,24 @@
     .pdf-light { background:#ffffff !important; border:none !important; border-radius:0 !important; color:#000 !important; }
     .pdf-light * { color:#000 !important; background-color:transparent !important; border-color:#bbb !important; box-shadow:none !important; text-shadow:none !important; }
     .pdf-light svg text { fill:#000 !important; }
-    .pdf-light svg rect[fill="#090e1a"] { fill:#ffffff !important; }
+    .pdf-light svg rect[fill="#1b110a"] { fill:#ffffff !important; }
     .pdf-light svg { background:#ffffff !important; }
     .pdf-light svg { max-height:420px !important; width:100% !important; }
     .pdf-light { box-sizing:border-box; padding:4px !important; }
     .pdf-light * { box-sizing:border-box; max-width:100% !important; }
 
     /* Светлая тема для работы на солнце: инверсия тёмной схемы, фото остаются как есть */
-    html.theme-light { filter: invert(1) hue-rotate(180deg); background:#05080f; }
+    html.theme-light { filter: invert(1) hue-rotate(180deg); background:#140c07; }
     html.theme-light img, html.theme-light video, html.theme-light .no-invert { filter: invert(1) hue-rotate(180deg); }
-    #fabDrawing { position:fixed; right:16px; bottom:20px; z-index:901; height:48px; padding:0 18px; border-radius:24px; border:1px solid #f59e0b;
-      background:#d97706; color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.45); cursor:pointer; }
+    #fabDrawing { position:fixed; right:16px; bottom:20px; z-index:901; height:48px; padding:0 18px; border-radius:24px; border:1px solid #e08a2a;
+      background:#d06d16; color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.45); cursor:pointer; }
     body.view-all-sections #fabDrawing { display:none; }
-    #modalDrawing { display:none; position:fixed; inset:0; z-index:2200; background:#05080f; flex-direction:column; }
+    #modalDrawing { display:none; position:fixed; inset:0; z-index:2200; background:#140c07; flex-direction:column; }
     #modalDrawing.open { display:flex; }
-    #modalDrawing .md-head { display:flex; gap:6px; align-items:center; padding:10px 10px calc(10px); border-bottom:1px solid #1e293b; }
+    #modalDrawing .md-head { display:flex; gap:6px; align-items:center; padding:10px 10px calc(10px); border-bottom:1px solid #311c0d; }
     #modalDrawing .md-head .btn { width:auto; min-width:44px; height:44px; padding:0 12px; font-size:18px; }
     #mdTitle { flex:1; font-weight:800; font-size:14px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #mdInfo { padding:6px 12px; font-size:12px; color:#94a3b8; }
+    #mdInfo { padding:6px 12px; font-size:12px; color:#c9ad8f; }
     #mdBody { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; padding:8px; }
     #mdCanvas svg { width:100% !important; height:auto !important; display:block; }
 
@@ -321,12 +321,12 @@
       .step-banner-text { font-size:14px !important; }
       body { padding-bottom: 84px !important; }
       #mobileStepBar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:900; gap:8px; align-items:center;
-        padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,14,26,0.96); border-top:1px solid #1e293b; }
+        padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,14,26,0.96); border-top:1px solid #311c0d; }
       #mobileStepBar .btn { flex:1; height:48px; font-size:15px; }
       #fabDrawing { display:none; }
-      #mbDraw { flex:0 0 86px !important; background:#d97706; color:#fff; border:1px solid #f59e0b; flex-direction:column; gap:0; line-height:1.1; font-size:16px !important; height:52px !important; }
+      #mbDraw { flex:0 0 86px !important; background:#d06d16; color:#fff; border:1px solid #e08a2a; flex-direction:column; gap:0; line-height:1.1; font-size:16px !important; height:52px !important; }
       #mbDraw #mbLabel { font-size:10px; color:#fff7ed; min-width:0; }
-      #mbLabel { flex:0 0 auto; font-size:12px; color:#94a3b8; font-weight:700; text-align:center; min-width:70px; }
+      #mbLabel { flex:0 0 auto; font-size:12px; color:#c9ad8f; font-weight:700; text-align:center; min-width:70px; }
       body.view-all-sections #mobileStepBar { display:none; }
     }
     /* Режим "Все блоки" */
@@ -353,7 +353,7 @@
       display: none; align-items: center; justify-content: center; padding: 10px;
     }
     .modal-sheet {
-      background: #131d31; border: 1px solid #334568; border-radius: 16px;
+      background: #2a190c; border: 1px solid #5a3b20; border-radius: 16px;
       max-width: 850px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px;
       display: flex; flex-direction: column; gap: 12px;
     }
@@ -368,10 +368,10 @@
 
     /* Карточки заказов в модалке */
     .order-item-card {
-      background: #090e1a; border: 1px solid #202d44; border-radius: 10px; padding: 12px;
+      background: #1b110a; border: 1px solid #4d3219; border-radius: 10px; padding: 12px;
       display: flex; flex-direction: column; gap: 6px; transition: all 0.2s;
     }
-    .order-item-card:hover { border-color: #3b82f6; }
+    .order-item-card:hover { border-color: #ffcf98; }
 
     /* Печать на лист А4 и этикеток */
     @media print {
@@ -383,8 +383,8 @@
       #printSheet *, #labelsPrintSheet * { color: #000000 !important; border-color: #999999 !important; }
       .label-sticker-card { border: 2px dashed #000000 !important; background: #ffffff !important; page-break-inside: avoid !important; break-inside: avoid !important; }
       #mSvgClone { background: #ffffff !important; }
-      svg rect[fill*="rgba(59, 130, 246"] { fill: #f0f4f8 !important; stroke: #000000 !important; }
-      svg rect[fill*="rgba(245, 158, 11"] { fill: #e5e5e5 !important; stroke: #333333 !important; }
+      svg rect[fill*="rgba(255, 207, 152"] { fill: #f0f4f8 !important; stroke: #000000 !important; }
+      svg rect[fill*="rgba(224, 138, 42"] { fill: #e5e5e5 !important; stroke: #333333 !important; }
       svg text { fill: #000000 !important; }
     }
   </style>
@@ -402,25 +402,25 @@
     <!-- ШАПКА С УПРАВЛЕНИЕМ БАЗОЙ ЗАМЕРОВ И БЫСТРОЙ СВОДКОЙ -->
     <header class="app-header">
       <div class="brand">
-        <div class="brand-logo">P</div>
+        <div class="brand-logo">Т</div>
         <div>
           <div style="font-weight:900; font-size:16px; line-height:1.2;">Монтажник Т-1000</div>
-          <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#94a3b8;">
-            <span>Стандарт цеха: фанера 607×2440</span>
+          <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#c9ad8f;">
+            <span>AKO Sound</span>
             <span id="lblAutoSaveStatus" style="color:#34d399; font-weight:700; font-size:10px;">● Память активна</span>
           </div>
         </div>
       </div>
 
       <!-- Быстрая сводка заказа в шапке (live статус) -->
-      <div id="headerQuickSummary" style="display:flex; align-items:center; gap:8px; background:rgba(30,41,59,0.7); border:1px solid #334155; padding:5px 12px; border-radius:20px; font-size:11px; color:#cbd5e1;">
-        <span id="hdrOrderTitle" style="font-weight:800; color:#60a5fa;">Заказ №101</span>
-        <span style="color:#475569;">•</span>
+      <div id="headerQuickSummary" style="display:flex; align-items:center; gap:8px; background:rgba(30,41,59,0.7); border:1px solid #5a3b20; padding:5px 12px; border-radius:20px; font-size:11px; color:#ead8c3;">
+        <span id="hdrOrderTitle" style="font-weight:800; color:#ffcf98;">Заказ №101</span>
+        <span style="color:#8a6a4f;">•</span>
         <span id="hdrCleanDim" style="color:#34d399; font-weight:800; font-family:monospace;">4317×2484</span>
-        <span style="color:#475569;">•</span>
-        <span id="hdrPanelsCount" style="color:#fbbf24; font-weight:700;">8 дет.</span>
-        <span style="color:#475569;">•</span>
-        <span id="hdrTotalPrice" style="color:#38bdf8; font-weight:900; font-family:monospace;">181 292 ₽</span>
+        <span style="color:#8a6a4f;">•</span>
+        <span id="hdrPanelsCount" style="color:#ffbc00; font-weight:700;">8 дет.</span>
+        <span style="color:#8a6a4f;">•</span>
+        <span id="hdrTotalPrice" style="color:#ffbc00; font-weight:900; font-family:monospace;">181 292 ₽</span>
       </div>
 
       <!-- Кнопки управления базой замеров и режим отображения -->
@@ -473,7 +473,7 @@
     <!-- ПАНЕЛЬ МУЛЬТИ-СТЕН ЗАКАЗА -->
     <div id="wallsBar" class="walls-bar-container">
       <div style="display:flex; align-items:center; gap:8px; flex:1; flex-wrap:wrap;">
-        <span style="font-size:12px; font-weight:800; color:#cbd5e1; display:flex; align-items:center; gap:4px;">
+        <span style="font-size:12px; font-weight:800; color:#ead8c3; display:flex; align-items:center; gap:4px;">
           🧱 Стены заказа:
         </span>
         <div id="wallsBarTabs" class="walls-bar-tabs">
@@ -481,7 +481,7 @@
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-        <span id="badgeWallsSummary" style="font-size:11px; color:#94a3b8; font-weight:600;">
+        <span id="badgeWallsSummary" style="font-size:11px; color:#c9ad8f; font-weight:600;">
           1 стена
         </span>
         <button class="btn-add-wall" onclick="addNewWall()" title="Добавить еще одну стену в этот заказ">
@@ -651,7 +651,7 @@
 
             <!-- Переключатель режима замера -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:11px; color:#94a3b8;">Сетка замера цеха:</span>
+              <span style="font-size:11px; color:#c9ad8f;">Сетка замера цеха:</span>
               <div class="btn-toggle-group" style="width:190px;">
                 <button class="btn-toggle active" id="btnMode9" onclick="toggleMeasureMode(9)">9 точек (Цех)</button>
                 <button class="btn-toggle" id="btnMode3" onclick="toggleMeasureMode(3)">Экспресс (3)</button>
@@ -663,23 +663,23 @@
               <!-- 1. Верхний горизонт (под потолком) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#fbbf24; font-weight:bold;">1. ШИРИНА ВЕРХ (под потолком):</span>
-                  <span style="font-size:10px; color:#94a3b8;">от угла в угол</span>
+                  <span style="font-size:10px; color:#ffbc00; font-weight:bold;">1. ШИРИНА ВЕРХ (под потолком):</span>
+                  <span style="font-size:10px; color:#c9ad8f;">от угла в угол</span>
                 </div>
                 <div class="laser-line-row">
-                  <div class="laser-arrow-h" style="background:#fbbf24;"></div>
+                  <div class="laser-arrow-h" style="background:#ffbc00;"></div>
                   <div style="width:125px;">
-                    <input id="inWTop" type="number" inputmode="numeric" value="4319" class="laser-input" style="color:#fbbf24; border-color:#fbbf24;" oninput="onSizeChanged()">
+                    <input id="inWTop" type="number" inputmode="numeric" value="4319" class="laser-input" style="color:#ffbc00; border-color:#ffbc00;" oninput="onSizeChanged()">
                   </div>
-                  <div class="laser-arrow-h" style="background:#fbbf24;"></div>
+                  <div class="laser-arrow-h" style="background:#ffbc00;"></div>
                 </div>
               </div>
 
               <!-- 2. Средний горизонт (на уровне 1.2 - 1.5м) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#94a3b8; font-weight:bold;">2. ШИРИНА ЦЕНТР (на высоте 1.5м):</span>
-                  <span style="font-size:10px; color:#94a3b8;">проверка пуза штукатурки</span>
+                  <span style="font-size:10px; color:#c9ad8f; font-weight:bold;">2. ШИРИНА ЦЕНТР (на высоте 1.5м):</span>
+                  <span style="font-size:10px; color:#c9ad8f;">проверка пуза штукатурки</span>
                 </div>
                 <div class="laser-line-row">
                   <div class="laser-arrow-h"></div>
@@ -693,20 +693,20 @@
               <!-- 3. Нижний горизонт (у плинтуса) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#60a5fa; font-weight:bold;">3. ШИРИНА НИЗ (у пола):</span>
-                  <span style="font-size:10px; color:#94a3b8;">базовая линия пола</span>
+                  <span style="font-size:10px; color:#ffcf98; font-weight:bold;">3. ШИРИНА НИЗ (у пола):</span>
+                  <span style="font-size:10px; color:#c9ad8f;">базовая линия пола</span>
                 </div>
                 <div class="laser-line-row">
-                  <div class="laser-arrow-h" style="background:#60a5fa;"></div>
+                  <div class="laser-arrow-h" style="background:#ffcf98;"></div>
                   <div style="width:125px;">
-                    <input id="inWBot" type="number" inputmode="numeric" value="4339" class="laser-input" style="color:#60a5fa; border-color:#60a5fa;" oninput="onSizeChanged()">
+                    <input id="inWBot" type="number" inputmode="numeric" value="4339" class="laser-input" style="color:#ffcf98; border-color:#ffcf98;" oninput="onSizeChanged()">
                   </div>
-                  <div class="laser-arrow-h" style="background:#60a5fa;"></div>
+                  <div class="laser-arrow-h" style="background:#ffcf98;"></div>
                 </div>
               </div>
 
               <!-- Высоты в 3-х точках (Лево, Центр, Право) -->
-              <div style="border-top:1px dashed #25334d; padding-top:8px; margin-top:2px;">
+              <div style="border-top:1px dashed #4d3219; padding-top:8px; margin-top:2px;">
                 <span style="font-size:10px; color:#34d399; font-weight:bold; display:block; margin-bottom:4px;">ВЕРТИКАЛИ ВЫСОТЫ (от пола до потолка):</span>
                 <div class="row" style="margin-bottom:0;">
                   <div class="col">
@@ -749,9 +749,9 @@
 
             <details class="adv" style="margin-bottom:8px;"><summary>Зазоры цеха — по умолчанию 2 мм справа и сверху</summary>
             <!-- ТЕХНОЛОГИЧЕСКИЙ ЗАЗОР НА МОНТАЖ (ПРАВИЛО ЦЕХА: 2..5 мм) -->
-            <div style="background:#090e1a; padding:10px; border-radius:10px; border:1px solid #202d44; margin-bottom:8px;">
+            <div style="background:#1b110a; padding:10px; border-radius:10px; border:1px solid #4d3219; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="font-size:11px; color:#f8fafc; font-weight:700;">⚙️ Технологический зазор цеха:</span>
+                <span style="font-size:11px; color:#fff7ee; font-weight:700;">⚙️ Технологический зазор цеха:</span>
                 <span style="font-size:10px; color:#34d399;">В идеале 2 мм (предел 5 мм)</span>
               </div>
               <div class="row" style="margin-bottom:0;">
@@ -779,12 +779,12 @@
 
             </details>
             <!-- Итог анализа геометрии стены цехом -->
-            <div style="background:#090e1a; padding:10px 12px; border-radius:10px; border:1px solid #25334d; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div>
-                <span style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:bold;">Рабочий габарит с зазором:</span>
+                <span style="font-size:10px; color:#c9ad8f; text-transform:uppercase; font-weight:bold;">Рабочий габарит с зазором:</span>
                 <div id="lblCleanDim" style="font-size:17px; font-weight:900; color:#34d399; font-family:monospace;">4317 × 2484 мм</div>
               </div>
-              <div id="lblKlinAdvice" style="font-size:11px; color:#fbbf24; text-align:right; font-weight:bold; max-width:210px;">
+              <div id="lblKlinAdvice" style="font-size:11px; color:#ffbc00; text-align:right; font-weight:bold; max-width:210px;">
                 Левая стена 90° (база). Правый добор режется под клин!
               </div>
             </div>
@@ -811,7 +811,7 @@
           </div>
         </div>
         <div class="step-grid-2col">
-          <div class="card" style="border-color:#d97706;">
+          <div class="card" style="border-color:#d06d16;">
             <div class="card-title">
               <span>🚪 Проёмы и препятствия (Двери, Окна, Колонны)</span>
               <span id="badgeOpenings" class="badge badge-amber">Нет проемов</span>
@@ -912,7 +912,7 @@
               🚨 Есть розетки ближе 40 мм к шву панелей.
               <button class="btn btn-amber" style="margin-top:8px; height:46px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
             </div>
-            <div id="boxShiftStep2" style="display:none; margin-top:8px; font-size:12px; color:#94a3b8;"></div>
+            <div id="boxShiftStep2" style="display:none; margin-top:8px; font-size:12px; color:#c9ad8f;"></div>
           </div>
 
         </div>
@@ -935,14 +935,14 @@
           </div>
         </div>
         <div style="max-width:850px; margin:0 auto;">
-          <div class="card" style="border-color:#3b82f6;">
+          <div class="card" style="border-color:#ffcf98;">
             <div class="card-title">
               <span>📷 Фотофиксация объекта (Стена & Узлы)</span>
               <span id="badgePhotos" class="badge badge-blue">0 фото</span>
             </div>
-            <button class="btn" style="background:#0e7490; color:#fff; height:48px; font-size:14px; margin-bottom:10px;" onclick="openViz()">🎨 Примерка панелей на фото комнаты</button>
+            <button class="btn" style="background:#8a5a2b; color:#fff; height:48px; font-size:14px; margin-bottom:10px;" onclick="openViz()">🎨 Примерка панелей на фото комнаты</button>
 
-            <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">
+            <div style="font-size:11px; color:#c9ad8f; margin-bottom:8px;">
               Прикрепите фото стены, выводов розеток и сложных углов для мастера цеха:
             </div>
 
@@ -988,12 +988,12 @@
             </div>
 
             <!-- Симметрия и балансировка узких остатков (Пункт цеха) -->
-            <div style="margin-bottom:12px; background:#090e1a; padding:10px 12px; border-radius:10px; border:1px solid #202d44;">
+            <div style="margin-bottom:12px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
               <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:0;">
                 <input type="checkbox" id="chkBalanceDobor" checked onchange="onBalanceDoborChanged()" style="width:20px; height:20px; margin-top:2px;">
                 <div>
                   <div style="font-weight:700; color:#fff; font-size:12px;">⚖️ Балансировать узкий добор (делить на 2 панели)</div>
-                  <div style="font-size:11px; color:#94a3b8; text-transform:none;">Если остаток стены &lt; 150 мм (напр. 68 мм), он делится пополам с предыдущей панелью. Это устраняет узкие хрупкие полосы и коллизии розеток со швами.</div>
+                  <div style="font-size:11px; color:#c9ad8f; text-transform:none;">Если остаток стены &lt; 150 мм (напр. 68 мм), он делится пополам с предыдущей панелью. Это устраняет узкие хрупкие полосы и коллизии розеток со швами.</div>
                 </div>
               </label>
             </div>
@@ -1009,7 +1009,7 @@
               </div>
               <div class="col">
                 <label>Лимит листа по высоте</label>
-                <input value="2440 мм (Цельный)" disabled style="background:#162035; color:#94a3b8; font-weight:bold; text-align:center;">
+                <input value="2440 мм (Цельный)" disabled style="background:#2a190c; color:#c9ad8f; font-weight:bold; text-align:center;">
               </div>
             </div>
 
@@ -1017,19 +1017,19 @@
             <div style="margin-top:4px;">
               <label>Верхний добор (если высота > 2440 мм):</label>
               <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:10px;">
-                <label style="display:flex; align-items:center; gap:8px; background:#090e1a; padding:8px 10px; border-radius:8px; border:1px solid #202d44; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
                   <input type="radio" name="rdDobor" value="solid" checked onchange="onDoborModeChanged()" style="width:16px; height:16px;">
                   <div>
                     <div style="font-weight:700; color:#fff; font-size:12px;">Длинные балки (1-2 цельных сегмента)</div>
-                    <div style="font-size:10px; color:#94a3b8;">Потолочные балки длиной до 2.4м без частых вертикальных швов</div>
+                    <div style="font-size:10px; color:#c9ad8f;">Потолочные балки длиной до 2.4м без частых вертикальных швов</div>
                   </div>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; background:#090e1a; padding:8px 10px; border-radius:8px; border:1px solid #202d44; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
                   <input type="radio" name="rdDobor" value="per_panel" onchange="onDoborModeChanged()" style="width:16px; height:16px;">
                   <div>
                     <div style="font-weight:700; color:#fff; font-size:12px;">Составной добор («шов в шов» по 607 мм)</div>
-                    <div style="font-size:10px; color:#94a3b8;">Каждая панель продолжается вверх отдельным кубиком в стык</div>
+                    <div style="font-size:10px; color:#c9ad8f;">Каждая панель продолжается вверх отдельным кубиком в стык</div>
                   </div>
                 </label>
               </div>
@@ -1114,13 +1114,13 @@
               🚨 Выпил под розетку ближе 40 мм к шву панелей.
               <button class="btn btn-amber" style="margin-top:8px; height:44px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
             </div>
-            <div id="boxShiftInfo" style="display:none; margin-top:8px; font-size:11px; color:#94a3b8;"></div>
+            <div id="boxShiftInfo" style="display:none; margin-top:8px; font-size:11px; color:#c9ad8f;"></div>
 
             <div id="boxOpeningCollision" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(239,68,68,0.25); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:11px; font-weight:700;">
               🚨 Ошибка коллизии: розетка попадает внутрь дверного или оконного проёма!
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:#94a3b8;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:#c9ad8f;">
               <span>🔴 Выпилы розеток | 🚪 Проёмы и вырезы</span>
               <span>Левая сторона — 90°, правая — клин</span>
             </div>
@@ -1166,14 +1166,14 @@
             <div id="lstStock" style="display:flex; flex-direction:column; gap:6px; font-size:12px;"></div>
           </div>
 
-          <div class="card" style="border-color:#3b82f6;">
+          <div class="card" style="border-color:#ffcf98;">
             <div class="card-title">
               <span>💰 Расчетная смета клиенту</span>
               <span class="badge badge-green" id="badgePriceFormula">100% формула цеха</span>
             </div>
 
             <!-- Фиксация цены договора и почта цеха -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:6px 10px; border-radius:8px; border:1px solid #202d44; margin-bottom:8px; font-size:11px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:8px; border:1px solid #4d3219; margin-bottom:8px; font-size:11px;">
               <div id="boxPriceLockStatus" style="display:flex; align-items:center; gap:6px;">
                 <span id="lblPriceLockBadge" class="badge badge-green">✓ Расчет по тарифам</span>
               </div>
@@ -1183,22 +1183,22 @@
             </div>
 
             <!-- Итоговая сумма и площадь -->
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #202d44; padding-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #4d3219; padding-bottom:8px;">
               <div>
-                <div style="font-size:11px; color:#94a3b8;">Итоговая стоимость:</div>
-                <div style="font-size:26px; font-weight:900; color:#60a5fa; font-family:monospace; line-height:1.1;" id="lblTotalPrice">181 292 ₽</div>
+                <div style="font-size:11px; color:#c9ad8f;">Итоговая стоимость:</div>
+                <div style="font-size:26px; font-weight:900; color:#ffcf98; font-family:monospace; line-height:1.1;" id="lblTotalPrice">181 292 ₽</div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:11px; color:#94a3b8;">Чистая площадь:</div>
+                <div style="font-size:11px; color:#c9ad8f;">Чистая площадь:</div>
                 <div style="font-size:14px; font-weight:800; color:#34d399;" id="lblNetArea">10.72 м²</div>
               </div>
             </div>
 
             <!-- Управление скидкой -->
-            <div style="margin-top:10px; background:#090e1a; padding:8px 10px; border-radius:8px; border:1px solid #202d44;">
+            <div style="margin-top:10px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="font-size:11px; color:#cbd5e1; font-weight:700;">🏷️ Скидка клиенту:</span>
-                <span id="lblDiscountRub" style="font-size:11px; color:#fbbf24; font-weight:bold;">0 ₽</span>
+                <span style="font-size:11px; color:#ead8c3; font-weight:700;">🏷️ Скидка клиенту:</span>
+                <span id="lblDiscountRub" style="font-size:11px; color:#ffbc00; font-weight:bold;">0 ₽</span>
               </div>
               <div style="display:flex; gap:6px; align-items:center;">
                 <div style="display:flex; gap:4px; flex:1;">
@@ -1208,27 +1208,27 @@
                   <button type="button" class="btn btn-dark" style="height:28px; padding:0 6px; font-size:11px; flex:1;" onclick="setDiscount(10)">10%</button>
                 </div>
                 <div style="width:70px; position:relative;">
-                  <input id="inDiscount" type="number" min="0" max="60" step="0.5" value="0" oninput="onDiscountChanged()" style="height:28px; padding:2px 18px 2px 6px; text-align:right; font-size:12px; font-weight:bold; color:#fbbf24; margin:0;">
-                  <span style="position:absolute; right:6px; top:5px; font-size:11px; color:#94a3b8; pointer-events:none;">%</span>
+                  <input id="inDiscount" type="number" min="0" max="60" step="0.5" value="0" oninput="onDiscountChanged()" style="height:28px; padding:2px 18px 2px 6px; text-align:right; font-size:12px; font-weight:bold; color:#ffbc00; margin:0;">
+                  <span style="position:absolute; right:6px; top:5px; font-size:11px; color:#c9ad8f; pointer-events:none;">%</span>
                 </div>
               </div>
             </div>
 
             <!-- Позиционная расшифровка сметы -->
             <div style="margin-top:10px;">
-              <div style="font-size:11px; color:#94a3b8; font-weight:700; margin-bottom:6px; text-transform:uppercase;">
+              <div style="font-size:11px; color:#c9ad8f; font-weight:700; margin-bottom:6px; text-transform:uppercase;">
                 Позиционная расшифровка сметы:
               </div>
               <div id="lstPriceBreakdown" style="display:flex; flex-direction:column; gap:5px; font-size:11px;"></div>
             </div>
 
             <!-- Кнопки отправки и печати -->
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px; border-top:1px solid #202d44; padding-top:12px;">
-              <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #f59e0b; color:#fbbf24;">Подписи клиента нет</div>
-              <button class="btn" style="background:#0e7490; color:#fff; height:48px; font-size:14px;" onclick="openViz()">
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px; border-top:1px solid #4d3219; padding-top:12px;">
+              <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #e08a2a; color:#ffbc00;">Подписи клиента нет</div>
+              <button class="btn" style="background:#8a5a2b; color:#fff; height:48px; font-size:14px;" onclick="openViz()">
                 🎨 Примерка панелей на фото комнаты
               </button>
-              <button class="btn" id="btnSign" style="background:#7c3aed; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
+              <button class="btn" id="btnSign" style="background:#6610f2; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
                 ✍️ Подпись клиента
               </button>
               <button class="btn btn-dark" id="btnClientCopy" style="height:48px; font-size:14px; display:none;" onclick="sendClientCopy()">
@@ -1265,15 +1265,15 @@
   <!-- МОДАЛЬНОЕ ОКНО БАЗЫ СОХРАНЕННЫХ ЗАМЕРОВ (МОИ ЗАМЕРЫ) -->
   <div id="modalOrdersList" class="modal-overlay">
     <div class="modal-sheet" style="max-width:700px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #25334d; padding-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4d3219; padding-bottom:10px;">
         <div style="font-weight:900; font-size:16px; display:flex; align-items:center; gap:8px;">
           <span>📁</span> Мои сохраненные замеры на планшете
         </div>
-        <button onclick="closeOrdersModal()" style="background:transparent; border:none; color:#94a3b8; font-size:22px; cursor:pointer;">✕</button>
+        <button onclick="closeOrdersModal()" style="background:transparent; border:none; color:#c9ad8f; font-size:22px; cursor:pointer;">✕</button>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-        <span style="font-size:12px; color:#94a3b8;">Все замеры хранятся в памяти устройства и доступны офлайн:</span>
+        <span style="font-size:12px; color:#c9ad8f;">Все замеры хранятся в памяти устройства и доступны офлайн:</span>
         <button onclick="createNewOrder()" class="btn btn-primary" style="width:auto; height:34px; padding:0 12px; font-size:11px;">
           + Создать новый замер
         </button>
@@ -1283,7 +1283,7 @@
         <!-- Карточки сохраненных заказов генерируются динамически -->
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #25334d; padding-top:10px; flex-wrap:wrap; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #4d3219; padding-top:10px; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; gap:6px;">
           <button onclick="exportOrdersJSON()" class="btn btn-dark" style="width:auto; height:32px; padding:0 10px; font-size:11px;">
             📥 Экспорт архива (JSON)
@@ -1303,59 +1303,59 @@
   <!-- МОДАЛЬНОЕ ОКНО ОФИЦИАЛЬНОГО БЛАНКА НА ПРОИЗВОДСТВО -->
   <div id="modalOrder" class="modal-overlay">
     <div class="modal-sheet">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #25334d; padding-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4d3219; padding-bottom:8px;">
         <div style="font-weight:900; font-size:16px; display:flex; align-items:center; gap:8px;">
           <span>🏭</span> Бланк производственного наряда <span id="mOrderNum">№104</span>
         </div>
-        <button onclick="closeOrderModal()" style="background:transparent; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
+        <button onclick="closeOrderModal()" style="background:transparent; border:none; color:#c9ad8f; font-size:20px; cursor:pointer;">✕</button>
       </div>
 
-      <div id="printSheet" style="background:#090e1a; padding:14px; border-radius:10px; border:1px solid #25334d; font-size:12px; display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #162238; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+      <div id="printSheet" style="background:#1b110a; padding:14px; border-radius:10px; border:1px solid #4d3219; font-size:12px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #3a2412; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div>
             <div style="font-size:15px; font-weight:800;" id="mTitle">Заказ №101 от 15.09.2026</div>
-            <div style="color:#94a3b8; margin-top:2px;" id="mAddress">г. Образцовый, ул. Примерная, д. 1, кв. 1</div>
-            <div style="color:#94a3b8;" id="mLogistics">Подъем: Грузовой лифт, этаж 3 • Монтаж: Да</div>
-            <div style="color:#fbbf24; font-size:11px;" id="mNotes">Препятствия: —</div>
+            <div style="color:#c9ad8f; margin-top:2px;" id="mAddress">г. Образцовый, ул. Примерная, д. 1, кв. 1</div>
+            <div style="color:#c9ad8f;" id="mLogistics">Подъем: Грузовой лифт, этаж 3 • Монтаж: Да</div>
+            <div style="color:#ffbc00; font-size:11px;" id="mNotes">Препятствия: —</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-weight:800; color:#60a5fa;" id="mSeriesBase">Optima (60 мм) • МДФ 12 мм</div>
-            <div style="color:#94a3b8;" id="mFinish">Ткань рогожка 1й сорт</div>
+            <div style="font-weight:800; color:#ffcf98;" id="mSeriesBase">Optima (60 мм) • МДФ 12 мм</div>
+            <div style="color:#c9ad8f;" id="mFinish">Ткань рогожка 1й сорт</div>
             <div style="font-size:16px; font-weight:900; color:#34d399; margin-top:2px;" id="mPrice">181 292 ₽</div>
           </div>
         </div>
 
         <div>
-          <b id="mGeomTitle" style="color:#94a3b8; font-size:10px; text-transform:uppercase;">1. Геометрия стен (замеры и зазоры цеха):</b>
+          <b id="mGeomTitle" style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">1. Геометрия стен (замеры и зазоры цеха):</b>
           <div id="mWallGeom" style="font-family:monospace; margin-top:2px;"></div>
-          <div id="mWallPoints" style="color:#94a3b8; font-size:11px; margin-top:2px;"></div>
-          <div id="mWallOpenings" style="color:#f59e0b; font-size:11px; margin-top:2px;"></div>
+          <div id="mWallPoints" style="color:#c9ad8f; font-size:11px; margin-top:2px;"></div>
+          <div id="mWallOpenings" style="color:#e08a2a; font-size:11px; margin-top:2px;"></div>
         </div>
 
         <div>
-          <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">2. Схема раскладки, привязка розеток, проёмы и стыки:</b>
-          <div id="mSvgClone" style="background:#050811; border-radius:6px; padding:6px; margin-top:4px;"></div>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">2. Схема раскладки, привязка розеток, проёмы и стыки:</b>
+          <div id="mSvgClone" style="background:#140c07; border-radius:6px; padding:6px; margin-top:4px;"></div>
         </div>
 
         <div>
-          <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">3. Подетальный распил основы (Фанера / МДФ 607 мм):</b>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">3. Подетальный распил основы (Фанера / МДФ 607 мм):</b>
           <div id="mCuttingList" style="font-family:monospace; margin-top:4px; display:flex; flex-direction:column; gap:3px;"></div>
         </div>
 
         <div>
-          <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">4. Складская ведомость комплектации (нормы расхода):</b>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">4. Складская ведомость комплектации (нормы расхода):</b>
           <div id="mStockItems" style="margin-top:4px; display:grid; grid-template-columns: 1fr 1fr; gap:4px;"></div>
         </div>
 
         <div>
-          <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">5. Калькуляция и смета заказа клиенту (фабричный расчет):</b>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">5. Калькуляция и смета заказа клиенту (фабричный расчет):</b>
           <div id="mPriceBreakdown" style="margin-top:4px; font-family:monospace; display:flex; flex-direction:column; gap:3px;"></div>
         </div>
 
-        <div id="mSignSection" class="pdf-keep" style="border-top:1px solid #25334d; padding-top:8px;"></div>
+        <div id="mSignSection" class="pdf-keep" style="border-top:1px solid #4d3219; padding-top:8px;"></div>
 
         <div id="mPhotosSection" style="display:none;">
-          <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">6. Фотофиксация объекта (прикрепленные фото):</b>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">6. Фотофиксация объекта (прикрепленные фото):</b>
           <div id="mPhotosList" style="margin-top:6px; display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:8px;"></div>
         </div>
       </div>
@@ -1374,19 +1374,19 @@
   <!-- МОДАЛЬНОЕ ОКНО ПЕЧАТИ БИРОК НА ДЕТАЛИ (ПУНКТ 6) -->
   <div id="modalLabels" class="modal-overlay">
     <div class="modal-sheet" style="max-width:920px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #25334d; padding-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4d3219; padding-bottom:8px;">
         <div>
           <div style="font-weight:900; font-size:16px; display:flex; align-items:center; gap:8px;">
             <span>🏷️</span> Бирки на детали для раскроя и сборки
           </div>
-          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+          <div style="font-size:11px; color:#c9ad8f; margin-top:2px;">
             Формат термоэтикеток 100×60 мм под самоклейку. Наклеивается на каждую деталь при снятии с распиловочного станка.
           </div>
         </div>
-        <button onclick="closeLabelsModal()" style="background:transparent; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
+        <button onclick="closeLabelsModal()" style="background:transparent; border:none; color:#c9ad8f; font-size:20px; cursor:pointer;">✕</button>
       </div>
 
-      <div id="labelsPrintSheet" style="background:#090e1a; padding:12px; border-radius:10px; border:1px solid #25334d; max-height:68vh; overflow-y:auto;">
+      <div id="labelsPrintSheet" style="background:#1b110a; padding:12px; border-radius:10px; border:1px solid #4d3219; max-height:68vh; overflow-y:auto;">
         <div id="labelsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;"></div>
       </div>
 
@@ -1403,7 +1403,7 @@
   <!-- МОДАЛКА ПРОСМОТРА ФОТО НА ВЕСЬ ЭКРАН -->
   <div id="modalPhotoPreview" class="modal-overlay" onclick="closePhotoPreview()">
     <div style="max-width:92vw; max-height:92vh; position:relative; display:flex; align-items:center; justify-content:center;" onclick="event.stopPropagation()">
-      <img id="imgFullscreenPreview" src="" style="max-width:100%; max-height:86vh; border-radius:10px; border:2px solid #3b82f6; object-fit:contain; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+      <img id="imgFullscreenPreview" src="" style="max-width:100%; max-height:86vh; border-radius:10px; border:2px solid #ffcf98; object-fit:contain; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
       <button onclick="closePhotoPreview()" style="position:absolute; top:-14px; right:-14px; background:#ef4444; border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer;">✕</button>
     </div>
   </div>
@@ -1904,7 +1904,7 @@
       applyWallToUI(getActiveWall());
       renderWallsBar();
       autoDivideWall();
-      showToast(`Переключено: ${getActiveWall().name || ('Стена ' + (idx + 1))}`, "🧱", "#3b82f6");
+      showToast(`Переключено: ${getActiveWall().name || ('Стена ' + (idx + 1))}`, "🧱", "#ffcf98");
     }
 
     function addNewWall() {
@@ -2005,7 +2005,7 @@
           <div class="wall-tab-name">
             <span>${isActive ? '📌' : '🧱'} ${escapeHTML(wName)}</span>
             <span class="wall-tab-dim">${(w.cleanW/1000).toFixed(2)}×${(w.cleanH/1000).toFixed(2)}м</span>
-            <button class="wall-tab-btn-ren" onclick="renameWall(${idx})" style="background:none; border:none; color:#60a5fa; cursor:pointer; font-size:11px; padding:0 2px;" title="Переименовать стену">✏️</button>
+            <button class="wall-tab-btn-ren" onclick="renameWall(${idx})" style="background:none; border:none; color:#ffcf98; cursor:pointer; font-size:11px; padding:0 2px;" title="Переименовать стену">✏️</button>
           </div>
           ${appState.walls.length > 1 ? `
             <button class="wall-tab-btn-del" onclick="removeWall(${idx})" title="Удалить эту стену">✕</button>
@@ -2289,7 +2289,7 @@
       const container = document.getElementById('ordersCardsContainer');
       container.innerHTML = '';
       if (db.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Нет сохраненных заказов</div>';
+        container.innerHTML = '<div style="text-align:center; color:#c9ad8f; padding:20px;">Нет сохраненных заказов</div>';
       }
       db.forEach(item => {
         const isCurrent = (item.id === appState.id);
@@ -2302,20 +2302,20 @@
 
         const card = document.createElement('div');
         card.className = "order-item-card";
-        if (isCurrent) card.style.borderColor = "#3b82f6";
+        if (isCurrent) card.style.borderColor = "#ffcf98";
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
               <b style="font-size:14px; color:#fff;">${escapeHTML(item.orderNum || 'Заказ')}</b>
-              <span style="font-size:11px; color:#94a3b8; margin-left:6px;">от ${escapeHTML(item.orderDate || '')}</span>
+              <span style="font-size:11px; color:#c9ad8f; margin-left:6px;">от ${escapeHTML(item.orderDate || '')}</span>
               ${isCurrent ? '<span class="badge badge-blue" style="margin-left:6px;">Открыт сейчас</span>' : ''}
               ${item.isPriceLocked ? '<span class="badge badge-amber" style="margin-left:4px;">🔒 Договор</span>' : ''}
             </div>
             <span style="font-weight:900; color:#34d399; font-family:monospace;">${price} ₽</span>
           </div>
-          <div style="font-size:12px; color:#cbd5e1;">📍 ${escapeHTML(item.address || 'Адрес не указан')}</div>
-          <div style="display:flex; gap:12px; font-size:11px; color:#94a3b8; margin-top:2px; flex-wrap:wrap;">
-            <span>🧱 Стен: <b>${walls.length}</b> (<b style="color:#60a5fa;">${escapeHTML(sizes)} мм</b>)</span>
+          <div style="font-size:12px; color:#ead8c3;">📍 ${escapeHTML(item.address || 'Адрес не указан')}</div>
+          <div style="display:flex; gap:12px; font-size:11px; color:#c9ad8f; margin-top:2px; flex-wrap:wrap;">
+            <span>🧱 Стен: <b>${walls.length}</b> (<b style="color:#ffcf98;">${escapeHTML(sizes)} мм</b>)</span>
             <span>🚪 Проемов: <b>${nOpen} шт</b></span>
             <span>⚡ Розеток: <b>${nSock} шт</b></span>
           </div>
@@ -2600,11 +2600,11 @@
 
       appState.openings.forEach((op, idx) => {
         const d = document.createElement('div');
-        d.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid #202d44;";
+        d.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid #4d3219;";
         d.innerHTML = `
           <div>
             <b>${escapeHTML(op.name)}</b>: ${op.w}×${op.h} мм
-            <span style="color:#94a3b8; font-size:10px;">(X=${op.xWall} мм, ${op.refEdge === 'left' ? 'от лев.' : 'от прав.'} ${op.refDist} мм${op.yFloor ? ', от пола ' + op.yFloor + 'мм' : ''})</span>
+            <span style="color:#c9ad8f; font-size:10px;">(X=${op.xWall} мм, ${op.refEdge === 'left' ? 'от лев.' : 'от прав.'} ${op.refDist} мм${op.yFloor ? ', от пола ' + op.yFloor + 'мм' : ''})</span>
           </div>
           <button onclick="removeWallOpening(${idx})" style="min-width:38px; min-height:38px; padding:6px 12px; display:inline-flex; align-items:center; justify-content:center; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-weight:bold; font-size:15px; cursor:pointer;" title="Удалить проем">🗑️</button>
         `;
@@ -2683,7 +2683,7 @@
       if (appState.isPriceLocked && appState.savedPrice) {
         box.innerHTML = `
           <span id="lblPriceLockBadge" class="badge badge-amber">🔒 Цена зафиксирована (${appState.savedPrice.toLocaleString('ru-RU')} ₽)</span>
-          <button onclick="unlockPriceRecalculate()" style="background:none; border:none; color:#60a5fa; cursor:pointer; font-size:10px; text-decoration:underline;" title="Пересчитать по актуальным тарифам">Пересчитать</button>
+          <button onclick="unlockPriceRecalculate()" style="background:none; border:none; color:#ffcf98; cursor:pointer; font-size:10px; text-decoration:underline;" title="Пересчитать по актуальным тарифам">Пересчитать</button>
         `;
       } else {
         box.innerHTML = `<span id="lblPriceLockBadge" class="badge badge-green">✓ Расчет по актуальным тарифам</span>`;
@@ -2750,8 +2750,8 @@
         el.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
         return null;
       } else {
-        el.style.borderColor = '#25334d';
-        el.style.backgroundColor = '#090e1a';
+        el.style.borderColor = '#4d3219';
+        el.style.backgroundColor = '#1b110a';
         return val;
       }
     }
@@ -3028,17 +3028,17 @@
         if (wallsSummary.length === 1) {
           const ws = wallsSummary[0];
           wallsHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
               <span>🧱 Панели отделки (${escapeHTML(ws.wall.finish || appState.finish)}, ${ws.netArea.toFixed(2)} м² × ${ws.rateFinish.toLocaleString('ru-RU')} ₽)</span>
-              <b style="color:#60a5fa;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
+              <b style="color:#ffcf98;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
             </div>
           `;
         } else {
           wallsSummary.forEach((ws, i) => {
             wallsHtml += `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
                 <span>🧱 Стена ${i + 1} «${escapeHTML(ws.name)}» (${escapeHTML(ws.wall.finish || appState.finish)}, ${ws.netArea.toFixed(2)} м² × ${ws.rateFinish.toLocaleString('ru-RU')} ₽)</span>
-                <b style="color:#60a5fa;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
+                <b style="color:#ffcf98;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
               </div>
             `;
           });
@@ -3046,28 +3046,28 @@
 
         pBreakdown.innerHTML = `
           ${wallsHtml}
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
             <span>🔌 Выпилы под розетки (всего ${totalPosts} постов × 600 ₽)</span>
-            <b style="color:${costSockets > 0 ? '#60a5fa' : '#64748b'};">${costSockets > 0 ? costSockets.toLocaleString('ru-RU') + ' ₽' : '0 ₽ (нет)'}</b>
+            <b style="color:${costSockets > 0 ? '#ffcf98' : '#9a7a5c'};">${costSockets > 0 ? costSockets.toLocaleString('ru-RU') + ' ₽' : '0 ₽ (нет)'}</b>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
             <span>📏 Верхний добор со всех стен:</span>
-            <b style="color:${totalCostDobor > 0 ? '#60a5fa' : '#64748b'};">${totalCostDobor > 0 ? totalCostDobor.toLocaleString('ru-RU') + ' ₽' : '—'}</b>
+            <b style="color:${totalCostDobor > 0 ? '#ffcf98' : '#9a7a5c'};">${totalCostDobor > 0 ? totalCostDobor.toLocaleString('ru-RU') + ' ₽' : '—'}</b>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
             <span>🚚 Доставка и занос (${appState.install === 'Самовывоз' ? 'самовывоз' : (costLift > 0 ? appState.lift + ', ' + appState.floor + ' эт' : 'базовая')})</span>
-            <b style="color:${costLogistics > 0 ? '#60a5fa' : '#64748b'};">${costLogistics.toLocaleString('ru-RU')} ₽ (единожды)</b>
+            <b style="color:${costLogistics > 0 ? '#ffcf98' : '#9a7a5c'};">${costLogistics.toLocaleString('ru-RU')} ₽ (единожды)</b>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:5px 8px; border-radius:6px; border:1px solid #1e293b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
             <span>🛠️ Профессиональный монтаж (${appState.install === 'Да + Доставка' ? 'под ключ (' + totalNetArea.toFixed(2) + ' м²)' : 'не включен'})</span>
-            <b style="color:${costInstall > 0 ? '#60a5fa' : '#64748b'};">${costInstall > 0 ? costInstall.toLocaleString('ru-RU') + ' ₽' : '0 ₽'}</b>
+            <b style="color:${costInstall > 0 ? '#ffcf98' : '#9a7a5c'};">${costInstall > 0 ? costInstall.toLocaleString('ru-RU') + ' ₽' : '0 ₽'}</b>
           </div>
           ${discountAmount > 0 ? `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(245, 158, 11, 0.1); padding:5px 8px; border-radius:6px; border:1px solid #f59e0b;">
-            <span style="color:#fbbf24;">🏷️ Скидка клиенту (${discountPct}%)</span>
-            <b style="color:#fbbf24;">-${discountAmount.toLocaleString('ru-RU')} ₽</b>
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(224, 138, 42, 0.1); padding:5px 8px; border-radius:6px; border:1px solid #e08a2a;">
+            <span style="color:#ffbc00;">🏷️ Скидка клиенту (${discountPct}%)</span>
+            <b style="color:#ffbc00;">-${discountAmount.toLocaleString('ru-RU')} ₽</b>
           </div>` : ''}
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#111c33; padding:6px 8px; border-radius:6px; border:1px solid #3b82f6; margin-top:2px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#2a190c; padding:6px 8px; border-radius:6px; border:1px solid #ffcf98; margin-top:2px;">
             <b style="color:#fff;">ИТОГО К ОПЛАТЕ:</b>
             <b style="color:#34d399; font-size:14px; font-family:monospace;">${finalPrice.toLocaleString('ru-RU')} ₽</b>
           </div>
@@ -3515,7 +3515,7 @@
       if (bs) {
         const sh = appState.layoutShift || 0;
         bs.style.display = sh ? 'block' : 'none';
-        bs.innerHTML = sh ? `↔ Раскладка сдвинута: у левой стены узкая панель ${sh} мм. <a href="#" style="color:#60a5fa;" onclick="resetLayoutShift(); return false;">Сбросить</a>` : '';
+        bs.innerHTML = sh ? `↔ Раскладка сдвинута: у левой стены узкая панель ${sh} мм. <a href="#" style="color:#ffcf98;" onclick="resetLayoutShift(); return false;">Сбросить</a>` : '';
       }
       document.getElementById('boxOpeningCollision').style.display = openingCollision ? 'block' : 'none';
 
@@ -3528,7 +3528,7 @@
         const isHitOp = s.inOpening;
 
         const d = document.createElement('div');
-        d.style.cssText = `display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid ${isHitOp || isNearSeam ? '#ef4444' : '#202d44'};`;
+        d.style.cssText = `display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid ${isHitOp || isNearSeam ? '#ef4444' : '#4d3219'};`;
         
         let panelDesc = `Панель №${s.panelId}`;
         if (p && p.type && p.type !== 'Стандарт') {
@@ -3538,8 +3538,8 @@
         d.innerHTML = `
           <div>
             <b>${panelDesc}</b>: В:${s.localH}мм (от низа дет.), П:${s.localX}мм
-            <span style="color:${s.type.includes('Выключатель') ? '#a78bfa' : '#60a5fa'}; font-weight:bold;">[${escapeHTML(s.type)}]</span>
-            <span style="color:#94a3b8; font-size:10px;">(${s.refEdge === 'left' ? 'от левого' : 'от правого'}: ${s.refDist} мм, Y=${s.yWall})</span>
+            <span style="color:${s.type.includes('Выключатель') ? '#a78bfa' : '#ffcf98'}; font-weight:bold;">[${escapeHTML(s.type)}]</span>
+            <span style="color:#c9ad8f; font-size:10px;">(${s.refEdge === 'left' ? 'от левого' : 'от правого'}: ${s.refDist} мм, Y=${s.yWall})</span>
             ${isNearSeam ? '<span style="color:#f87171; font-weight:bold; margin-left:4px;">⚠️ шов &lt;40мм!</span>' : ''}
             ${isHitOp ? '<span style="color:#ef4444; font-weight:bold; margin-left:4px;">🚨 в проёме!</span>' : ''}
           </div>
@@ -3578,18 +3578,18 @@
 
       // 1. Верхняя размерная линия с зазором
       svg += `
-        <line x1="${padLeft}" y1="14" x2="${padLeft + drawW}" y2="14" stroke="#3b82f6" stroke-width="1.5"/>
-        <line x1="${padLeft}" y1="8" x2="${padLeft}" y2="20" stroke="#3b82f6" stroke-width="1.2"/>
-        <line x1="${padLeft + drawW}" y1="8" x2="${padLeft + drawW}" y2="20" stroke="#3b82f6" stroke-width="1.2"/>
-        <text x="${padLeft + drawW/2}" y="11" fill="#60a5fa" font-size="8.5" font-weight="bold" text-anchor="middle">
+        <line x1="${padLeft}" y1="14" x2="${padLeft + drawW}" y2="14" stroke="#ffcf98" stroke-width="1.5"/>
+        <line x1="${padLeft}" y1="8" x2="${padLeft}" y2="20" stroke="#ffcf98" stroke-width="1.2"/>
+        <line x1="${padLeft + drawW}" y1="8" x2="${padLeft + drawW}" y2="20" stroke="#ffcf98" stroke-width="1.2"/>
+        <text x="${padLeft + drawW/2}" y="11" fill="#ffcf98" font-size="8.5" font-weight="bold" text-anchor="middle">
           Рабочая ширина: ${w} мм (Зазор -${wObj.gapWall || 0} мм) | Высота: ${wObj.cleanH} мм
         </text>
       `;
 
       // 2. Линия уровня чистого пола
       svg += `
-        <line x1="${padLeft - 6}" y1="${floorY}" x2="${padLeft + drawW + 6}" y2="${floorY}" stroke="#64748b" stroke-width="2"/>
-        <text x="${padLeft}" y="${floorY + 14}" fill="#64748b" font-size="7.5" font-weight="bold">▲ Чистый пол (0.000)</text>
+        <line x1="${padLeft - 6}" y1="${floorY}" x2="${padLeft + drawW + 6}" y2="${floorY}" stroke="#9a7a5c" stroke-width="2"/>
+        <text x="${padLeft}" y="${floorY + 14}" fill="#9a7a5c" font-size="7.5" font-weight="bold">▲ Чистый пол (0.000)</text>
       `;
 
       // 3. Верхний добор (если высота > 2440 мм)
@@ -3597,8 +3597,8 @@
         const doborH_px = wObj.doborH * scale;
         if (wObj.doborMode === 'solid') {
           svg += `
-            <rect x="${padLeft}" y="${wallTopY}" width="${drawW}" height="${Math.max(doborH_px, 12)}" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="1.2" rx="1.5"/>
-            <text x="${padLeft + drawW/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 3}" fill="#fbbf24" font-size="7.5" font-weight="bold" text-anchor="middle">
+            <rect x="${padLeft}" y="${wallTopY}" width="${drawW}" height="${Math.max(doborH_px, 12)}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
+            <text x="${padLeft + drawW/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 3}" fill="#ffbc00" font-size="7.5" font-weight="bold" text-anchor="middle">
               Верхний добор (цельные балки): ${w} × ${wObj.doborH} мм
             </text>
           `;
@@ -3607,8 +3607,8 @@
             const px = padLeft + (p.startX * scale);
             const pw = p.w * scale;
             svg += `
-              <rect x="${px}" y="${wallTopY}" width="${Math.max(1, pw - 1)}" height="${Math.max(doborH_px, 12)}" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="1.2" rx="1.5"/>
-              ${pw >= 24 ? `<text x="${px + pw/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 2.5}" fill="#fbbf24" font-size="7" font-weight="bold" text-anchor="middle">${p.w}</text>` : ''}
+              <rect x="${px}" y="${wallTopY}" width="${Math.max(1, pw - 1)}" height="${Math.max(doborH_px, 12)}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
+              ${pw >= 24 ? `<text x="${px + pw/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 2.5}" fill="#ffbc00" font-size="7" font-weight="bold" text-anchor="middle">${p.w}</text>` : ''}
             `;
           });
         }
@@ -3623,8 +3623,8 @@
 
         const isDobor = p.isDobor;
         const isOverhead = p.isDoorOverhead || (p.type && p.type.includes('Над '));
-        const fillColor = isDobor ? 'rgba(245, 158, 11, 0.18)' : (isOverhead ? 'rgba(245, 158, 11, 0.22)' : 'rgba(59, 130, 246, 0.16)');
-        const strokeColor = (isDobor || isOverhead) ? '#f59e0b' : '#3b82f6';
+        const fillColor = isDobor ? 'rgba(224, 138, 42, 0.18)' : (isOverhead ? 'rgba(224, 138, 42, 0.22)' : 'rgba(255, 207, 152, 0.16)');
+        const strokeColor = (isDobor || isOverhead) ? '#e08a2a' : '#ffcf98';
 
         svg += `<g>`;
         svg += `<rect x="${px}" y="${py}" width="${Math.max(1, pw - 1.2)}" height="${Math.max(2, panelH)}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.2" rx="1.5"/>`;
@@ -3633,14 +3633,14 @@
         if (pw >= 18 && panelH >= 12) {
           if (pw < 45 && panelH >= 60) {
             const cx = px + pw/2, cy = py + panelH/2;
-            svg += `<text x="${cx}" y="${cy + 3}" transform="rotate(-90 ${cx} ${cy})" fill="#f8fafc" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
+            svg += `<text x="${cx}" y="${cy + 3}" transform="rotate(-90 ${cx} ${cy})" fill="#fff7ee" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
           } else if (panelH < 35 || pw < 45) {
-            svg += `<text x="${px + pw/2}" y="${py + panelH/2 + 3}" fill="#f8fafc" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
+            svg += `<text x="${px + pw/2}" y="${py + panelH/2 + 3}" fill="#fff7ee" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
           } else {
             svg += `
-              <text x="${px + pw/2}" y="${py + panelH/2 - 4}" fill="#f8fafc" font-size="8" font-weight="bold" text-anchor="middle">№${p.id}${isDobor ? ' (клин)' : ''}</text>
-              <text x="${px + pw/2}" y="${py + panelH/2 + 7}" fill="${isDobor ? '#fbbf24' : '#94a3b8'}" font-size="7" text-anchor="middle">${p.w} мм</text>
-              <text x="${px + pw/2}" y="${py + panelH - 4}" fill="#60a5fa" font-size="6.5" text-anchor="middle">H=${p.h}</text>
+              <text x="${px + pw/2}" y="${py + panelH/2 - 4}" fill="#fff7ee" font-size="8" font-weight="bold" text-anchor="middle">№${p.id}${isDobor ? ' (клин)' : ''}</text>
+              <text x="${px + pw/2}" y="${py + panelH/2 + 7}" fill="${isDobor ? '#ffbc00' : '#c9ad8f'}" font-size="7" text-anchor="middle">${p.w} мм</text>
+              <text x="${px + pw/2}" y="${py + panelH - 4}" fill="#ffcf98" font-size="6.5" text-anchor="middle">H=${p.h}</text>
             `;
           }
         }
@@ -3667,7 +3667,7 @@
             <line x1="${ox}" y1="${oy}" x2="${ox + ow}" y2="${oy + oh}" stroke="rgba(239, 68, 68, 0.15)" stroke-width="1"/>
             <line x1="${ox + ow}" y1="${oy}" x2="${ox}" y2="${oy + oh}" stroke="rgba(239, 68, 68, 0.15)" stroke-width="1"/>
             ${badgeW >= 30 && oh >= 16 ? `
-              <rect x="${ox + ow/2 - badgeW/2}" y="${oy + oh/2 - 9}" width="${badgeW}" height="18" rx="3" fill="#090e1a" stroke="#ef4444" stroke-width="0.8"/>
+              <rect x="${ox + ow/2 - badgeW/2}" y="${oy + oh/2 - 9}" width="${badgeW}" height="18" rx="3" fill="#1b110a" stroke="#ef4444" stroke-width="0.8"/>
               <text x="${ox + ow/2}" y="${oy + oh/2 + 3}" fill="#f87171" font-size="7" font-weight="bold" text-anchor="middle">
                 ${iconLabel} ${op.w}×${op.h}
               </text>
@@ -3704,7 +3704,7 @@
           <g>
             <rect x="${sx - 7}" y="${sy - 5}" width="14" height="10" rx="1.5" fill="${badgeColor}" stroke="${badgeStroke}" stroke-width="0.9"/>
             <circle cx="${sx}" cy="${sy}" r="1.5" fill="#ffffff"/>
-            <rect x="${sx - 24}" y="${sy - 15}" width="48" height="10" rx="2" fill="#090e1a" stroke="${badgeStroke}" stroke-width="0.7"/>
+            <rect x="${sx - 24}" y="${sy - 15}" width="48" height="10" rx="2" fill="#1b110a" stroke="${badgeStroke}" stroke-width="0.7"/>
             <text x="${sx}" y="${sy - 8}" fill="#ffffff" font-size="6" font-weight="bold" text-anchor="middle">${badgeText}</text>
           </g>
         `;
@@ -3717,8 +3717,8 @@
       if (diffW > 0) {
         const rx = padLeft + drawW;
         svg += `
-          <line x1="${rx}" y1="${wallTopY}" x2="${rx + 8}" y2="${floorY}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3,2"/>
-          <text x="${rx + 10}" y="${floorY - drawH/2}" fill="#fbbf24" font-size="6.5" font-weight="bold">Клин +${diffW}мм</text>
+          <line x1="${rx}" y1="${wallTopY}" x2="${rx + 8}" y2="${floorY}" stroke="#e08a2a" stroke-width="1.2" stroke-dasharray="3,2"/>
+          <text x="${rx + 10}" y="${floorY - drawH/2}" fill="#ffbc00" font-size="6.5" font-weight="bold">Клин +${diffW}мм</text>
         `;
       }
 
@@ -3749,7 +3749,7 @@
         if (appState.walls.length > 1) {
           const trH = document.createElement('tr');
           trH.innerHTML = `
-            <td colspan="5" style="background:#172554; color:#93c5fd; font-weight:bold; padding:8px 10px; font-size:12px; border-top:2px solid #3b82f6;">
+            <td colspan="5" style="background:#3a2412; color:#ffe2bf; font-weight:bold; padding:8px 10px; font-size:12px; border-top:2px solid #ffcf98;">
               🧱 СТЕНА ${wIdx + 1}: «${escapeHTML(w.name || 'Стена ' + (wIdx + 1))}» — чистый габарит ${w.cleanW} × ${w.cleanH} мм • ${escapeHTML(w.finish || appState.finish)}
             </td>
           `;
@@ -3763,18 +3763,18 @@
 
           let dimText = `${p.h} × ${p.w}`;
           if (p.isDobor && p.blankW) {
-            dimText = `<b style="color:#fbbf24;">${p.h} × ${p.w}</b> (загот. ${p.blankW}мм, клин +${p.diffW}мм)`;
+            dimText = `<b style="color:#ffbc00;">${p.h} × ${p.w}</b> (загот. ${p.blankW}мм, клин +${p.diffW}мм)`;
           } else if (p.isDoorOverhead) {
-            dimText = `<b style="color:#fbbf24;">${p.h} × ${p.w}</b> (над проемом)`;
+            dimText = `<b style="color:#ffbc00;">${p.h} × ${p.w}</b> (над проемом)`;
           }
 
           const panelNum = (appState.walls.length > 1) ? `№${wIdx + 1}-${p.id}` : `№${p.id}`;
 
           tr.innerHTML = `
             <td><b>${panelNum}</b></td>
-            <td style="color:#60a5fa; font-weight:bold;">${dimText}</td>
+            <td style="color:#ffcf98; font-weight:bold;">${dimText}</td>
             <td>${escapeHTML(w.baseMat || appState.baseMat)}</td>
-            <td style="color:${sockText ? '#f87171' : '#94a3b8'}; font-weight:${sockText ? 'bold' : 'normal'};">${escapeHTML(sockText) || '—'}</td>
+            <td style="color:${sockText ? '#f87171' : '#c9ad8f'}; font-weight:${sockText ? 'bold' : 'normal'};">${escapeHTML(sockText) || '—'}</td>
             <td><span class="badge ${p.isDobor ? 'badge-amber' : (p.isDoorOverhead ? 'badge-amber' : 'badge-blue')}">${escapeHTML(p.type)}</span></td>
           `;
           tbody.appendChild(tr);
@@ -3784,7 +3784,7 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td><b>Добор верха</b></td>
-            <td style="color:#fbbf24; font-weight:bold;">${w.doborH} × ${w.doborMode === 'solid' ? w.cleanW : 'по раскладке ' + w.stdPanelW}</td>
+            <td style="color:#ffbc00; font-weight:bold;">${w.doborH} × ${w.doborMode === 'solid' ? w.cleanW : 'по раскладке ' + w.stdPanelW}</td>
             <td>${escapeHTML(w.baseMat || appState.baseMat)}</td>
             <td>—</td>
             <td><span class="badge badge-amber">${w.doborMode === 'solid' ? 'Цельные балки' : wallPanels.length + ' шт шов-в-шов'}</span></td>
@@ -3801,25 +3801,25 @@
       const sealant = Math.ceil(totalAllPanels / 3);
 
       stock.innerHTML = `
-        <div style="display:flex; justify-content:space-between; background:#090e1a; padding:6px 10px; border-radius:6px; border:1px solid #1e293b;">
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
           <span>🔩 Дюбеля звукоизоляционные (3 шт на деталь со всех стен):</span>
-          <b style="color:#60a5fa;">${dowels} шт</b>
+          <b style="color:#ffcf98;">${dowels} шт</b>
         </div>
-        <div style="display:flex; justify-content:space-between; background:#090e1a; padding:6px 10px; border-radius:6px; border:1px solid #1e293b;">
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
           <span>🧪 Акустический герметик (1 туба на 3 панели):</span>
-          <b style="color:#60a5fa;">${sealant} тубы</b>
+          <b style="color:#ffcf98;">${sealant} тубы</b>
         </div>
-        <div style="display:flex; justify-content:space-between; background:#090e1a; padding:6px 10px; border-radius:6px; border:1px solid #1e293b;">
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
           <span>🧴 Монтажный клей Момент 300г:</span>
-          <b style="color:#60a5fa;">1 тюбик</b>
+          <b style="color:#ffcf98;">1 тюбик</b>
         </div>
-        <div style="display:flex; justify-content:space-between; background:#090e1a; padding:6px 10px; border-radius:6px; border:1px solid #1e293b;">
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
           <span>🎯 Комплект разметки Discus (под выпилы):</span>
-          <b style="color:#60a5fa;">${totalAllSockets > 0 ? (totalAllSockets * 3) + ' наметчиков + ' + (totalAllSockets * 3) + ' ответных' : 'нет розеток'}</b>
+          <b style="color:#ffcf98;">${totalAllSockets > 0 ? (totalAllSockets * 3) + ' наметчиков + ' + (totalAllSockets * 3) + ' ответных' : 'нет розеток'}</b>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:6px 10px; border-radius:6px; border:1px solid #1e293b;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
           <span>🧱 Минвата в подрозетники (звукоизоляция):</span>
-          <b style="color:#60a5fa;">${totalAllSockets > 0 ? '1 упаковка 200г' : 'не требуется'}</b>
+          <b style="color:#ffcf98;">${totalAllSockets > 0 ? '1 упаковка 200г' : 'не требуется'}</b>
         </div>
       `;
     }
@@ -3889,7 +3889,7 @@
         Стен: <b>${walls.length}</b> (${walls.map(w => `${w.cleanW}×${w.cleanH}`).join(', ')} мм) • площадь ≈ ${area.toFixed(1)} м²<br>
         ${escapeHTML(appState.series || '')} • ${escapeHTML(walls[0].finish || appState.finish || '')}<br>
         Итого к оплате: <b style="color:#34d399; font-size:16px;">${Number(price).toLocaleString('ru-RU')} ₽</b>
-        <div style="margin-top:4px;"><a href="#" onclick="openDrawingModal(); return false;" style="color:#60a5fa;">📐 Показать чертёж</a></div>`;
+        <div style="margin-top:4px;"><a href="#" onclick="openDrawingModal(); return false;" style="color:#ffcf98;">📐 Показать чертёж</a></div>`;
       document.getElementById('sgName').textContent = appState.clientName ? appState.clientName : 'ФИО клиента не указано (поле «Клиент» на шаге 1)';
       document.getElementById('sgAgree').checked = false;
       document.getElementById('modalSign').classList.add('open');
@@ -3955,7 +3955,7 @@
       if (appState.signature && appState.signature.fp !== orderFingerprint()) {
         appState.signature = null;
         updateSignatureUI();
-        showToast('Заказ изменён — подпись клиента снята, нужна новая', '⚠️', '#f59e0b');
+        showToast('Заказ изменён — подпись клиента снята, нужна новая', '⚠️', '#e08a2a');
       }
     }
     function formatSignDate(iso) {
@@ -3972,7 +3972,7 @@
         if (btn) btn.textContent = '✍️ Переподписать';
         const cc = document.getElementById('btnClientCopy'); if (cc) cc.style.display = 'block';
       } else {
-        box.style.borderColor = '#f59e0b'; box.style.color = '#fbbf24'; box.style.borderStyle = 'dashed';
+        box.style.borderColor = '#e08a2a'; box.style.color = '#ffbc00'; box.style.borderStyle = 'dashed';
         box.textContent = 'Подписи клиента нет';
         if (btn) btn.textContent = '✍️ Подпись клиента';
         const cc = document.getElementById('btnClientCopy'); if (cc) cc.style.display = 'none';
@@ -3983,14 +3983,14 @@
       if (!el) return;
       const sg = appState.signature;
       if (sg) {
-        el.innerHTML = `<b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Согласовано клиентом:</b>
+        el.innerHTML = `<b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">Согласовано клиентом:</b>
           <div style="display:flex; gap:14px; align-items:flex-end; margin-top:4px; flex-wrap:wrap;">
             <img src="${sg.img}" style="height:70px; background:#fff; border:1px solid #ccc; border-radius:4px;">
             <div style="font-size:12px;">${escapeHTML(sg.name || 'Клиент')}<br>${formatSignDate(sg.at)}<br>Сумма: ${Number(sg.price).toLocaleString('ru-RU')} ₽<br>
             <span style="font-size:10.5px;">С размерами, раскладкой и стоимостью ознакомлен(а) и согласен(на)</span></div>
           </div>`;
       } else {
-        el.innerHTML = `<b style="color:#f59e0b; font-size:11px;">⚠ Подпись клиента отсутствует</b>`;
+        el.innerHTML = `<b style="color:#e08a2a; font-size:11px;">⚠ Подпись клиента отсутствует</b>`;
       }
     }
     function confirmUnsignedSend() {
@@ -4006,10 +4006,10 @@
       return new Promise((resolve, reject) => {
         let s2 = svgStr
           .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
-          .replace(/#f8fafc/gi, '#111111').replace(/#ffffff/gi, '#111111')
-          .replace(/fill="#090e1a"/gi, 'fill="#ffffff"')
-          .replace(/#94a3b8/gi, '#333333').replace(/#64748b/gi, '#555555')
-          .replace(/#60a5fa/gi, '#1d4ed8').replace(/#fbbf24/gi, '#92400e').replace(/#f87171/gi, '#b91c1c');
+          .replace(/#fff7ee/gi, '#111111').replace(/#ffffff/gi, '#111111')
+          .replace(/fill="#1b110a"/gi, 'fill="#ffffff"')
+          .replace(/#c9ad8f/gi, '#333333').replace(/#9a7a5c/gi, '#555555')
+          .replace(/#ffcf98/gi, '#e8b070').replace(/#ffbc00/gi, '#92400e').replace(/#f87171/gi, '#b91c1c');
         const m = s2.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
         const vw = m ? parseFloat(m[1]) : 560, vh = m ? parseFloat(m[2]) : 300;
         s2 = s2.replace('<svg ', `<svg width="${vw * 3}" height="${vh * 3}" `);
@@ -4137,7 +4137,7 @@
 
     async function sendClientCopy() {
       if (!appState.signature) { alert('Сначала подпись клиента.'); return; }
-      showToast('Готовлю копию для клиента…', '⏳', '#3b82f6');
+      showToast('Готовлю копию для клиента…', '⏳', '#ffcf98');
       try {
         const canvas = await buildClientCopyCanvas();
         const blob = await canvasToPdfBlob(canvas);
@@ -4398,10 +4398,10 @@
       }
       if (viz.mode === 'corners') {
         const s = cv.width / cv.getBoundingClientRect().width || 1;
-        x.strokeStyle = '#f59e0b'; x.lineWidth = 2 * s; x.beginPath();
+        x.strokeStyle = '#e08a2a'; x.lineWidth = 2 * s; x.beginPath();
         viz.pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); x.closePath(); x.stroke();
         viz.pts.forEach((p, i) => {
-          x.fillStyle = '#f59e0b'; x.beginPath(); x.arc(p[0], p[1], 14 * s, 0, Math.PI * 2); x.fill();
+          x.fillStyle = '#e08a2a'; x.beginPath(); x.arc(p[0], p[1], 14 * s, 0, Math.PI * 2); x.fill();
           x.fillStyle = '#111'; x.font = `bold ${12 * s}px sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
           x.fillText(String(i + 1), p[0], p[1]);
         });
@@ -4514,15 +4514,15 @@
           const diffW = Math.abs((w.wBot || 0) - (w.wTop || 0));
           const devInfo = `Плоскость: лево ${w.devLeft || 0}мм, центр ${w.devCenter || 0}мм, право ${w.devRight || 0}мм`;
           const ops = (w.openings && w.openings.length > 0)
-            ? `<div style="color:#f59e0b; font-size:11px; margin-top:2px;">Проёмы: ${w.openings.map(o => `${o.name} ${o.w}×${o.h}мм (X=${o.xWall})`).join(', ')}</div>`
+            ? `<div style="color:#e08a2a; font-size:11px; margin-top:2px;">Проёмы: ${w.openings.map(o => `${o.name} ${o.w}×${o.h}мм (X=${o.xWall})`).join(', ')}</div>`
             : '';
           return `
-            <div style="${idx > 0 ? 'margin-top:6px; border-top:1px dashed #202d44; padding-top:6px;' : ''}">
-              ${walls.length > 1 ? `<div style="color:#60a5fa; font-weight:bold; font-size:12px;">🧱 ${escapeHTML(wName)}</div>` : ''}
-              <div style="font-size:11.5px; font-weight:bold; color:#cbd5e1;">
+            <div style="${idx > 0 ? 'margin-top:6px; border-top:1px dashed #4d3219; padding-top:6px;' : ''}">
+              ${walls.length > 1 ? `<div style="color:#ffcf98; font-weight:bold; font-size:12px;">🧱 ${escapeHTML(wName)}</div>` : ''}
+              <div style="font-size:11.5px; font-weight:bold; color:#ead8c3;">
                 Чистый рабочий: ${w.cleanW} × ${w.cleanH} мм (Клин: ${diffW} мм) • Зазоры: -${w.gapWall} мм справа, -${w.gapTop} мм сверху
               </div>
-              <div style="color:#94a3b8; font-size:11px;">
+              <div style="color:#c9ad8f; font-size:11px;">
                 Ширины: В ${w.wTop} / Ц ${w.wMid} / Н ${w.wBot} мм • Высоты: Л ${w.hLeft} / Ц ${w.hCenter} / П ${w.hRight} мм • ${devInfo}
               </div>
               ${ops}
@@ -4540,8 +4540,8 @@
       if (mSvgClone) {
         if (walls.length > 1) {
           mSvgClone.innerHTML = walls.map((w, idx) => `
-            <div style="${idx > 0 ? 'margin-top:12px; border-top:1px dashed #202d44; padding-top:10px;' : ''}">
-              <div style="font-size:11px; font-weight:bold; color:#60a5fa; margin-bottom:4px;">🧱 ${escapeHTML(w.name || `Стена ${idx + 1}`)} (${w.cleanW} × ${w.cleanH} мм)</div>
+            <div style="${idx > 0 ? 'margin-top:12px; border-top:1px dashed #4d3219; padding-top:10px;' : ''}">
+              <div style="font-size:11px; font-weight:bold; color:#ffcf98; margin-bottom:4px;">🧱 ${escapeHTML(w.name || `Стена ${idx + 1}`)} (${w.cleanW} × ${w.cleanH} мм)</div>
               ${generateWallSvg(w)}
             </div>
           `).join('');
@@ -4557,7 +4557,7 @@
         const diffW = Math.abs((w.wBot || 0) - (w.wTop || 0));
         if (walls.length > 1) {
           const wHdr = document.createElement('div');
-          wHdr.style.cssText = "color:#60a5fa; font-weight:bold; font-size:12px; margin-top:6px; border-bottom:1px solid #1e293b; padding-bottom:2px;";
+          wHdr.style.cssText = "color:#ffcf98; font-weight:bold; font-size:12px; margin-top:6px; border-bottom:1px solid #311c0d; padding-bottom:2px;";
           wHdr.innerText = `🧱 ${w.name || `Стена ${wallIdx + 1}`}:`;
           cutList.appendChild(wHdr);
         }
@@ -4571,7 +4571,7 @@
             dimStr += ` (заготовка ${p.blankW}мм, клин +${p.diffW || diffW}мм)`;
           }
           const pLabel = walls.length > 1 ? `С${wallIdx + 1}-№${p.id}` : `№${p.id}`;
-          d.innerHTML = `• <b>${pLabel}</b>: ${dimStr} — <span style="color:#60a5fa;">${escapeHTML(sockText || note)}</span>`;
+          d.innerHTML = `• <b>${pLabel}</b>: ${dimStr} — <span style="color:#ffcf98;">${escapeHTML(sockText || note)}</span>`;
           cutList.appendChild(d);
         });
 
@@ -4592,7 +4592,7 @@
         let perWallHtml = '';
         if (est.perWall && est.perWall.length > 1) {
           perWallHtml = est.perWall.map(pw => `
-            <div style="color:#94a3b8; font-size:11px; padding-left:8px;">
+            <div style="color:#c9ad8f; font-size:11px; padding-left:8px;">
               ↳ <b>${escapeHTML(pw.name)}</b> (${pw.netArea.toFixed(2)} м² × ${pw.rateFinish.toLocaleString('ru-RU')} ₽): ${pw.costPanels.toLocaleString('ru-RU')} ₽${pw.costSockets > 0 ? ` + розетки ${pw.costSockets.toLocaleString('ru-RU')} ₽` : ''}
             </div>
           `).join('');
@@ -4604,8 +4604,8 @@
           <div>• Верхний добор: <b>${est.costDobor > 0 ? est.costDobor.toLocaleString('ru-RU') + ' ₽' : '— (не требуется)'}</b></div>
           <div>• Доставка и занос (${appState.install === 'Самовывоз' ? 'самовывоз' : appState.lift + ', ' + appState.floor + ' эт.'}): <b>${est.costLogistics.toLocaleString('ru-RU')} ₽</b></div>
           <div>• Профессиональный монтаж (${appState.install === 'Да + Доставка' ? 'под ключ' : 'не включен'}): <b>${est.costInstall.toLocaleString('ru-RU')} ₽</b></div>
-          ${est.discountAmount > 0 ? `<div style="color:#f59e0b;">• Скидка ${est.discountPct}%: <b>-${est.discountAmount.toLocaleString('ru-RU')} ₽</b></div>` : ''}
-          <div style="font-weight:900; font-size:13px; color:#34d399; margin-top:3px; border-top:1px dashed #25334d; padding-top:3px;">
+          ${est.discountAmount > 0 ? `<div style="color:#e08a2a;">• Скидка ${est.discountPct}%: <b>-${est.discountAmount.toLocaleString('ru-RU')} ₽</b></div>` : ''}
+          <div style="font-weight:900; font-size:13px; color:#34d399; margin-top:3px; border-top:1px dashed #4d3219; padding-top:3px;">
             ${appState.isPriceLocked ? '🔒 ЗАФИКСИРОВАНО В ДОГОВОРЕ: ' : 'ИТОГО ПО СМЕТЕ: '} ${finalP.toLocaleString('ru-RU')} ₽
           </div>
         `;
@@ -4634,10 +4634,10 @@
         pSec.style.display = 'block';
         allPhotos.forEach(p => {
           const d = document.createElement('div');
-          d.style.cssText = "border:1px solid #202d44; border-radius:6px; overflow:hidden; background:#070c18;";
+          d.style.cssText = "border:1px solid #4d3219; border-radius:6px; overflow:hidden; background:#160e08;";
           d.innerHTML = `
             <img src="${p.dataUrl}" style="width:100%; height:110px; object-fit:cover; display:block;">
-            <div style="padding:3px 6px; font-size:10px; color:#cbd5e1; text-align:center;">${escapeHTML(p.caption || 'Фото')}</div>
+            <div style="padding:3px 6px; font-size:10px; color:#ead8c3; text-align:center;">${escapeHTML(p.caption || 'Фото')}</div>
           `;
           pList.appendChild(d);
         });
@@ -4755,11 +4755,11 @@
       if (!confirmUnsignedSend()) return;
       if (!getFactoryEmail()) editFactorySettings();
       const email = getFactoryEmail();
-      if (!email) { showToast("Сначала укажите почту цеха", "⚠️", "#f59e0b"); return; }
+      if (!email) { showToast("Сначала укажите почту цеха", "⚠️", "#e08a2a"); return; }
       const subject = encodeURIComponent(`${appState.orderNum} — Наряд на производство (${appState.address})`);
       const body = encodeURIComponent(generateOrderSummaryText());
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-      showToast(`Открытие почты (${email})...`, "📧", "#3b82f6");
+      showToast(`Открытие почты (${email})...`, "📧", "#ffcf98");
     }
 
     async function sendToMessengerMax() {
@@ -4796,8 +4796,8 @@
 
         if (walls.length > 1) {
           const wallDivider = document.createElement('div');
-          wallDivider.style.cssText = "grid-column: 1 / -1; background: #1e293b; border-left: 4px solid #3b82f6; padding: 8px 12px; border-radius: 6px; font-weight: bold; color: #60a5fa; margin-top: 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;";
-          wallDivider.innerHTML = `<span>🧱 ${escapeHTML(wallName)}</span><span style="color:#94a3b8; font-size:11px;">Панелей: ${wallPanels.length} шт.</span>`;
+          wallDivider.style.cssText = "grid-column: 1 / -1; background: #311c0d; border-left: 4px solid #ffcf98; padding: 8px 12px; border-radius: 6px; font-weight: bold; color: #ffcf98; margin-top: 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center;";
+          wallDivider.innerHTML = `<span>🧱 ${escapeHTML(wallName)}</span><span style="color:#c9ad8f; font-size:11px;">Панелей: ${wallPanels.length} шт.</span>`;
           container.appendChild(wallDivider);
         }
 
@@ -4805,16 +4805,16 @@
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
           let hVal = p.h;
           let typeName = p.type || 'СТАНДАРТНАЯ ПАНЕЛЬ';
-          let typeColor = '#3b82f6';
+          let typeColor = '#ffcf98';
           let specialNote = '';
 
           if (p.isDoorOverhead) {
             typeName = 'НАД ДВЕРНЫМ ПРОЕМОМ';
-            typeColor = '#f59e0b';
+            typeColor = '#e08a2a';
             specialNote = `Вырез снизу под дверь: ${p.doorH} мм`;
           } else if (p.isDobor) {
             typeName = 'КЛИН-ДОБОР (ПРАВАЯ СТОРОНА)';
-            typeColor = '#f59e0b';
+            typeColor = '#e08a2a';
             const blankW = p.blankW || p.w;
             specialNote = `Заготовка ${blankW} мм (припуск на клин стены +${diffW} мм). Прирезать по лазеру по месту.`;
           }
@@ -4834,43 +4834,43 @@
 
           const card = document.createElement('div');
           card.className = "label-sticker-card";
-          card.style.cssText = "background:#0c1527; border:2px dashed #3b82f6; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; font-size:11px; page-break-inside:avoid; break-inside:avoid;";
+          card.style.cssText = "background:#22150c; border:2px dashed #ffcf98; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; font-size:11px; page-break-inside:avoid; break-inside:avoid;";
           card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #202d44; padding-bottom:4px;">
-              <div style="font-weight:900; font-size:11px; color:#60a5fa;">🏭 Т-1000 • ${escapeHTML(appState.orderNum)}</div>
-              <div style="font-size:10px; color:#94a3b8;">${escapeHTML(appState.orderDate)}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4d3219; padding-bottom:4px;">
+              <div style="font-weight:900; font-size:11px; color:#ffcf98;">🏭 Т-1000 • ${escapeHTML(appState.orderNum)}</div>
+              <div style="font-size:10px; color:#c9ad8f;">${escapeHTML(appState.orderDate)}</div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
               <div>
-                <span style="font-size:16px; font-weight:900; color:#fff; background:#1e293b; padding:2px 8px; border-radius:4px; border:1px solid #334568;">
+                <span style="font-size:16px; font-weight:900; color:#fff; background:#311c0d; padding:2px 8px; border-radius:4px; border:1px solid #5a3b20;">
                   ${walls.length > 1 ? `С${wallIdx + 1}-№${p.id}` : `ДЕТАЛЬ №${p.id}`}
                 </span>
-                <span style="font-size:11px; font-weight:normal; color:#94a3b8; margin-left:4px;">${escapeHTML(wallName)}</span>
+                <span style="font-size:11px; font-weight:normal; color:#c9ad8f; margin-left:4px;">${escapeHTML(wallName)}</span>
               </div>
               <span style="font-size:9.5px; font-weight:bold; color:${typeColor}; border:1px solid ${typeColor}; padding:2px 6px; border-radius:4px;">
                 ${escapeHTML(typeName)}
               </span>
             </div>
 
-            <div style="background:#090e1a; padding:6px 8px; border-radius:6px; border:1px solid #202d44;">
-              <div style="font-size:10px; color:#94a3b8; text-transform:uppercase;">Габарит чистового распила:</div>
+            <div style="background:#1b110a; padding:6px 8px; border-radius:6px; border:1px solid #4d3219;">
+              <div style="font-size:10px; color:#c9ad8f; text-transform:uppercase;">Габарит чистового распила:</div>
               <div style="font-size:18px; font-weight:900; color:#34d399; font-family:monospace; margin-top:1px;">
                 ${hVal} × ${p.w} мм
               </div>
-              ${p.blankW ? `<div style="font-size:10.5px; color:#fbbf24; font-weight:bold;">Заготовка в цеху: ${hVal} × ${p.blankW} мм (клин +${diffW}мм)</div>` : ''}
+              ${p.blankW ? `<div style="font-size:10.5px; color:#ffbc00; font-weight:bold;">Заготовка в цеху: ${hVal} × ${p.blankW} мм (клин +${diffW}мм)</div>` : ''}
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
               <div>Основа: <b>${escapeHTML(w.baseMat || appState.baseMat)}</b></div>
               <div>Линейка: <b>${escapeHTML(w.series || appState.series)}</b></div>
-              <div style="grid-column:1/3;">Отделка: <b style="color:#60a5fa;">${escapeHTML(w.finish || appState.finish)}</b></div>
+              <div style="grid-column:1/3;">Отделка: <b style="color:#ffcf98;">${escapeHTML(w.finish || appState.finish)}</b></div>
             </div>
 
-            ${specialNote ? `<div style="background:rgba(245,158,11,0.15); border:1px solid #f59e0b; border-radius:4px; padding:3px 6px; font-size:10px; color:#fbbf24; font-weight:bold;">⚠️ ${escapeHTML(specialNote)}</div>` : ''}
+            ${specialNote ? `<div style="background:rgba(245,158,11,0.15); border:1px solid #e08a2a; border-radius:4px; padding:3px 6px; font-size:10px; color:#ffbc00; font-weight:bold;">⚠️ ${escapeHTML(specialNote)}</div>` : ''}
 
-            <div style="border-top:1px dashed #202d44; padding-top:4px;">
-              <div style="font-size:9.5px; color:#94a3b8; font-weight:bold; text-transform:uppercase;">Карта выпилов ЧПУ:</div>
+            <div style="border-top:1px dashed #4d3219; padding-top:4px;">
+              <div style="font-size:9.5px; color:#c9ad8f; font-weight:bold; text-transform:uppercase;">Карта выпилов ЧПУ:</div>
               ${socksHtml}
             </div>
 
@@ -4908,7 +4908,7 @@
         window.removeEventListener('afterprint', cleanup);
       };
       window.addEventListener('afterprint', cleanup);
-      showToast('В окне печати выберите «Сохранить как PDF»', '🏷️', '#3b82f6');
+      showToast('В окне печати выберите «Сохранить как PDF»', '🏷️', '#ffcf98');
       setTimeout(() => { window.print(); setTimeout(cleanup, 1500); }, 300);
     }
 
@@ -4930,7 +4930,7 @@
         window.removeEventListener('afterprint', cleanup);
       };
       window.addEventListener('afterprint', cleanup);
-      showToast('В окне печати выберите «Сохранить как PDF»', '📄', '#3b82f6');
+      showToast('В окне печати выберите «Сохранить как PDF»', '📄', '#ffcf98');
       setTimeout(() => { window.print(); setTimeout(cleanup, 1500); }, 300);
     }
 
@@ -5198,7 +5198,7 @@
       if (!appState.photos || appState.photos.length === 0) {
         badge.innerText = "0 фото";
         badge.className = "badge badge-blue";
-        box.innerHTML = '<div style="grid-column:1/-1; color:#64748b; font-size:11px; text-align:center; padding:8px;">Фотографии еще не прикреплены</div>';
+        box.innerHTML = '<div style="grid-column:1/-1; color:#9a7a5c; font-size:11px; text-align:center; padding:8px;">Фотографии еще не прикреплены</div>';
         return;
       }
 
@@ -5207,7 +5207,7 @@
 
       appState.photos.forEach((p, idx) => {
         const card = document.createElement('div');
-        card.style.cssText = "position:relative; border-radius:8px; overflow:hidden; border:1px solid #202d44; background:#070c18; aspect-ratio:4/3;";
+        card.style.cssText = "position:relative; border-radius:8px; overflow:hidden; border:1px solid #4d3219; background:#160e08; aspect-ratio:4/3;";
         card.innerHTML = `
           <img src="${p.dataUrl}" style="width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;" onclick="previewPhotoFullscreen('${p.dataUrl}')">
           <button onclick="removePhoto(${idx})" style="position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.7); border:none; color:#f87171; width:28px; height:28px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">🗑️</button>
