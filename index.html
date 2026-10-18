@@ -544,6 +544,10 @@
                 <label>Клиент (ФИО — для подписи)</label>
                 <input id="inClientName" placeholder="напр. Иванова Мария Петровна" autocomplete="off" oninput="onStateUpdated()">
               </div>
+              <div class="col">
+                <label>Телефон / почта клиента</label>
+                <input id="inClientContact" placeholder="+7 900 123-45-67" autocomplete="off" inputmode="tel" oninput="onStateUpdated()">
+              </div>
             </div>
 
             <div class="row">
@@ -1165,6 +1169,9 @@
               <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #f59e0b; color:#fbbf24;">Подписи клиента нет</div>
               <button class="btn" id="btnSign" style="background:#7c3aed; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
                 ✍️ Подпись клиента
+              </button>
+              <button class="btn btn-dark" id="btnClientCopy" style="height:48px; font-size:14px; display:none;" onclick="sendClientCopy()">
+                📤 Отправить копию клиенту
               </button>
               <button class="btn btn-primary" style="height:52px; font-size:15px;" onclick="downloadOrderPDF()">
                 📄 PDF наряда для цеха
@@ -2591,6 +2598,7 @@
       document.getElementById('inOrderDate').value = s.orderDate || '';
       document.getElementById('inAddress').value = s.address || '';
       document.getElementById('inClientName').value = s.clientName || '';
+      document.getElementById('inClientContact').value = s.clientContact || '';
       if (typeof updateSignatureUI === 'function') setTimeout(updateSignatureUI, 0);
       document.getElementById('inLift').value = s.lift || 'Грузовой';
       document.getElementById('inFloor').value = s.floor || '';
@@ -3029,6 +3037,7 @@
       appState.orderDate = document.getElementById('inOrderDate').value;
       appState.address = document.getElementById('inAddress').value;
       appState.clientName = document.getElementById('inClientName').value;
+      appState.clientContact = document.getElementById('inClientContact').value;
       appState.lift = document.getElementById('inLift').value;
       appState.floor = parseInt(document.getElementById('inFloor').value) || '';
       appState.install = document.getElementById('inInstall').value;
@@ -3900,10 +3909,12 @@
         box.style.borderColor = '#10b981'; box.style.color = '#34d399'; box.style.borderStyle = 'solid';
         box.innerHTML = `✓ Подписано клиентом${sg.name ? ': ' + escapeHTML(sg.name) : ''} • ${formatSignDate(sg.at)} • ${Number(sg.price).toLocaleString('ru-RU')} ₽`;
         if (btn) btn.textContent = '✍️ Переподписать';
+        const cc = document.getElementById('btnClientCopy'); if (cc) cc.style.display = 'block';
       } else {
         box.style.borderColor = '#f59e0b'; box.style.color = '#fbbf24'; box.style.borderStyle = 'dashed';
         box.textContent = 'Подписи клиента нет';
         if (btn) btn.textContent = '✍️ Подпись клиента';
+        const cc = document.getElementById('btnClientCopy'); if (cc) cc.style.display = 'none';
       }
     }
     function renderSignatureInSheet() {
@@ -3924,6 +3935,166 @@
     function confirmUnsignedSend() {
       if (signatureValid()) return true;
       return confirm('Клиент ещё не подписал замер и смету.\nОтправить наряд без подписи?');
+    }
+
+
+    // =========================================================================
+    // КОПИЯ КЛИЕНТУ: PDF со сметой, чертежом и подписью (без внутренних данных цеха)
+    // =========================================================================
+    function svgToImage(svgStr) {
+      return new Promise((resolve, reject) => {
+        let s2 = svgStr
+          .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+          .replace(/#f8fafc/gi, '#111111').replace(/#ffffff/gi, '#111111')
+          .replace(/fill="#090e1a"/gi, 'fill="#ffffff"')
+          .replace(/#94a3b8/gi, '#333333').replace(/#64748b/gi, '#555555')
+          .replace(/#60a5fa/gi, '#1d4ed8').replace(/#fbbf24/gi, '#92400e').replace(/#f87171/gi, '#b91c1c');
+        const m = s2.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+        const vw = m ? parseFloat(m[1]) : 560, vh = m ? parseFloat(m[2]) : 300;
+        s2 = s2.replace('<svg ', `<svg width="${vw * 3}" height="${vh * 3}" `);
+        const img = new Image();
+        img.onload = () => resolve({ img, vw, vh });
+        img.onerror = reject;
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s2);
+      });
+    }
+    function loadImg(src) {
+      return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    }
+    function wrapText(ctx, text, x, y, maxW, lh) {
+      const words = String(text).split(' '); let line = '';
+      for (const w of words) {
+        const t = line ? line + ' ' + w : w;
+        if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line, x, y); y += lh; line = w; } else line = t;
+      }
+      if (line) { ctx.fillText(line, x, y); y += lh; }
+      return y;
+    }
+
+    // Обрезаем подпись по чернилам (убираем пустое белое поле)
+    function trimSignature(img) {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      const d = x.getImageData(0, 0, c.width, c.height).data;
+      let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
+      for (let yy = 0; yy < c.height; yy++) for (let xx = 0; xx < c.width; xx++) {
+        const k = (yy * c.width + xx) * 4;
+        if (d[k] < 200 || d[k + 1] < 200 || d[k + 2] < 200) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; }
+      }
+      if (x1 <= x0 || y1 <= y0) return c;
+      const pad = 8, o = document.createElement('canvas');
+      o.width = x1 - x0 + pad * 2; o.height = y1 - y0 + pad * 2;
+      const ox = o.getContext('2d'); ox.fillStyle = '#fff'; ox.fillRect(0, 0, o.width, o.height);
+      ox.drawImage(c, x0 - pad, y0 - pad, o.width, o.height, 0, 0, o.width, o.height);
+      return o;
+    }
+
+    async function buildClientCopyCanvas() {
+      recomputeAllWalls();
+      const W = 1240, M = 70;
+      const breaks = [];
+      const c = document.createElement('canvas'); c.width = W; c.height = 6000;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
+      ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic';
+      let y = M + 20;
+      ctx.font = 'bold 38px sans-serif'; ctx.fillText('Согласование замера и сметы', M, y); y += 50;
+      ctx.font = '26px sans-serif'; ctx.fillStyle = '#333';
+      ctx.fillText(`${appState.orderNum || ''}  •  ${formatSignDate(appState.signature ? appState.signature.at : new Date().toISOString())}`, M, y); y += 38;
+      y = wrapText(ctx, `Адрес: ${appState.address || '—'}`, M, y, W - 2 * M, 34);
+      ctx.fillText(`Клиент: ${appState.clientName || '—'}`, M, y); y += 34;
+      ctx.fillText(`Материал: ${appState.series || ''} • ${(appState.walls[0] && appState.walls[0].finish) || appState.finish || ''}`, M, y); y += 20;
+      ctx.strokeStyle = '#ccc'; ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 40;
+
+      for (let i = 0; i < appState.walls.length; i++) {
+        const w = appState.walls[i];
+        breaks.push(y - 30);
+        ctx.fillStyle = '#111'; ctx.font = 'bold 28px sans-serif';
+        ctx.fillText(`${w.name || ('Стена ' + (i + 1))}: ${w.cleanW} × ${w.cleanH} мм`, M, y); y += 16;
+        try {
+          const { img, vw, vh } = await svgToImage(generateWallSvg(w));
+          const dw = W - 2 * M, dh = dw * vh / vw;
+          ctx.drawImage(img, M, y, dw, dh); y += dh + 30;
+        } catch (e) { y += 20; }
+      }
+
+      breaks.push(y - 10);
+      const price = appState.signature ? appState.signature.price : (appState.customPrice || 0);
+      ctx.strokeStyle = '#ccc'; ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 50;
+      ctx.fillStyle = '#111'; ctx.font = 'bold 34px sans-serif';
+      ctx.fillText(`Итого к оплате: ${Number(price).toLocaleString('ru-RU')} ₽`, M, y); y += 28;
+      ctx.font = '22px sans-serif'; ctx.fillStyle = '#555';
+      ctx.fillText('Включая изготовление, доставку и монтаж согласно замеру.', M, y); y += 60;
+
+      if (appState.signature) {
+        ctx.fillStyle = '#111'; ctx.font = '24px sans-serif';
+        y = wrapText(ctx, 'С размерами, раскладкой и стоимостью ознакомлен(а) и согласен(на).', M, y, W - 2 * M, 32);
+        y += 10;
+        const sig = trimSignature(await loadImg(appState.signature.img));
+        let sh = 150, sw = sh * sig.width / sig.height;
+        if (sw > 520) { sw = 520; sh = sw * sig.height / sig.width; }
+        ctx.drawImage(sig, M, y + (150 - sh), sw, sh);
+        sh = 150;
+        ctx.strokeStyle = '#999'; ctx.beginPath(); ctx.moveTo(M, y + sh); ctx.lineTo(M + 520, y + sh); ctx.stroke();
+        ctx.font = '22px sans-serif'; ctx.fillStyle = '#333';
+        ctx.fillText(`${appState.signature.name || appState.clientName || 'Клиент'}`, M + 560, y + sh - 40);
+        ctx.fillText(formatSignDate(appState.signature.at), M + 560, y + sh - 8);
+        y += sh + 40;
+      }
+      // обрезаем по содержимому
+      const out = document.createElement('canvas'); out.width = W; out.height = Math.ceil(y + M / 2);
+      out.getContext('2d').drawImage(c, 0, 0);
+      out._breaks = breaks;
+      return out;
+    }
+
+    async function canvasToPdfBlob(canvas) {
+      // jsPDF берём из встроенной библиотеки html2pdf; картинка на А4, длинный лист режется на страницы
+      const pdf = await html2pdf().set({ margin: 0, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } })
+        .from(document.createElement('div')).toPdf().get('pdf');
+      const pageWmm = 210, pageHmm = 297;
+      const pxPerMm = canvas.width / pageWmm;
+      const pageHpx = Math.floor(pageHmm * pxPerMm);
+      let first = true;
+      const breaks = (canvas._breaks || []).slice().sort((a, b) => a - b);
+      for (let top = 0; top < canvas.height;) {
+        let h = Math.min(pageHpx, canvas.height - top);
+        if (top + h < canvas.height) {
+          const cand = breaks.filter(b => b > top + pageHpx * 0.3 && b <= top + pageHpx);
+          if (cand.length) h = Math.round(cand[cand.length - 1] - top);
+        }
+        const part = document.createElement('canvas'); part.width = canvas.width; part.height = h;
+        const pc = part.getContext('2d'); pc.fillStyle = '#fff'; pc.fillRect(0, 0, part.width, h);
+        pc.drawImage(canvas, 0, top, canvas.width, h, 0, 0, canvas.width, h);
+        if (!first) pdf.addPage();
+        pdf.addImage(part.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageWmm, h / pxPerMm);
+        first = false;
+        top += h;
+      }
+      return pdf.output('blob');
+    }
+
+    async function sendClientCopy() {
+      if (!appState.signature) { alert('Сначала подпись клиента.'); return; }
+      showToast('Готовлю копию для клиента…', '⏳', '#3b82f6');
+      try {
+        const canvas = await buildClientCopyCanvas();
+        const blob = await canvasToPdfBlob(canvas);
+        const fname = `Смета_${(appState.orderNum || 'заказ').replace(/\s+/g, '_')}.pdf`;
+        const file = new File([blob], fname, { type: 'application/pdf' });
+        const text = `${appState.clientName ? appState.clientName + ', з' : 'З'}дравствуйте! Копия согласованного замера и сметы: ${appState.orderNum || ''}, ${Number(appState.signature.price).toLocaleString('ru-RU')} ₽.`;
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: fname, text }); return; }
+          catch (e) { if (e && e.name === 'AbortError') return; }
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = fname;
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast(`PDF сохранён: ${fname}. Отправьте клиенту${appState.clientContact ? ' на ' + appState.clientContact : ''}`, '📤', '#10b981');
+      } catch (e) {
+        console.error(e);
+        alert('Не получилось собрать PDF: ' + (e && e.message ? e.message : e));
+      }
     }
 
     // Пересчитать раскладку и привязку розеток для всех стен (не только открытой)
