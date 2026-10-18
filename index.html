@@ -665,7 +665,7 @@
                 </select>
               </div>
               <div class="col">
-                <label id="lblSockDist">Расстояние от угла (мм)</label>
+                <label id="lblSockDist">От угла до центра розетки (мм)</label>
                 <input id="inSockDist" type="number" inputmode="numeric" value="470" placeholder="напр. 470">
               </div>
             </div>
@@ -686,10 +686,11 @@
               <div class="col">
                 <label>Посты / Рамка</label>
                 <select id="inSockPosts">
-                  <option value="1 пост (Greenel d68×34)" selected>1 пост (Greenel d68)</option>
-                  <option value="2 поста">2 поста</option>
-                  <option value="3 поста (235×95)">3 поста</option>
-                  <option value="4 поста">4 поста</option>
+                  <option value="1 пост (Greenel d68×34)" selected>1 пост — выпил Ø68</option>
+                  <option value="2 поста">2 поста — выпил 139×68</option>
+                  <option value="3 поста">3 поста — выпил 210×68</option>
+                  <option value="4 поста">4 поста — выпил 281×68</option>
+                  <option value="5 постов">5 постов — выпил 352×68</option>
                 </select>
               </div>
             </div>
@@ -3113,6 +3114,22 @@
     // =========================================================================
     // ТОЧНАЯ 2D ПРИВЯЗКА РОЗЕТОК К ПАНЕЛЯМ (ПО ГОРИЗОНТАЛИ И ВЕРТИКАЛИ)
     // =========================================================================
+    // Выпил под блок подрозетников: N отверстий Ø68 в ряд с шагом 71 мм (стандарт рамок).
+    // Замерщик указывает координаты ЦЕНТРА блока.
+    const SOCK_HOLE_D = 68, SOCK_PITCH = 71, SEAM_MIN = 40;
+    function sockCutout(s) {
+      const m = String((s && s.posts) || '').match(/(\d+)/);
+      const n = Math.max(1, m ? parseInt(m[1]) : 1);
+      const w = SOCK_HOLE_D + (n - 1) * SOCK_PITCH;
+      return { n, w, h: SOCK_HOLE_D, text: n === 1 ? 'Ø68' : `${n}×Ø68 шаг ${SOCK_PITCH}, габарит ${w}×${SOCK_HOLE_D}` };
+    }
+    // Край выпила (а не центр) должен быть не ближе 40 мм к шву с обеих сторон
+    function sockNearSeam(s, p) {
+      if (!p || s.localX === null || s.localX === undefined) return false;
+      const half = sockCutout(s).w / 2;
+      return (s.localX - half) < SEAM_MIN || (p.w - s.localX - half) < SEAM_MIN;
+    }
+
     function recalculateSockets() {
       let seamCollision = false;
       let openingCollision = false;
@@ -3164,7 +3181,7 @@
           s.localH = Math.max(0, s.yWall - (matchedPanel.yFloor || 0));
 
           // ПРАВИЛО ЦЕХА: Расстояние от выпила до шва не ближе 40 мм С ОБЕИХ СТОРОН!
-          if (s.localX < 40 || (matchedPanel.w - s.localX) < 40) {
+          if (sockNearSeam(s, matchedPanel)) {
             seamCollision = true;
           }
         } else {
@@ -3182,7 +3199,7 @@
       lst.innerHTML = '';
       appState.sockets.forEach((s, idx) => {
         const p = appState.panels.find(pan => pan.id === s.panelId);
-        const isNearSeam = (s.localX < 40) || (p && (p.w - s.localX) < 40);
+        const isNearSeam = sockNearSeam(s, p);
         const isHitOp = s.inOpening;
 
         const d = document.createElement('div');
@@ -3341,7 +3358,7 @@
         const sy = floorY - (s.yWall * scale);
 
         const p = (wObj.panels || []).find(pan => pan.id === s.panelId);
-        const isNearSeam = p && (s.localX < 40 || (p.w - s.localX) < 40);
+        const isNearSeam = sockNearSeam(s, p);
         const isInOpening = s.inOpening;
 
         let badgeColor = '#dc2626';
@@ -3416,7 +3433,7 @@
 
         wallPanels.forEach(p => {
           const socks = wallSockets.filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} [${s.type}]`).join('; ');
+          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join('; ');
           const tr = document.createElement('tr');
 
           let dimText = `${p.h} × ${p.w}`;
@@ -3491,7 +3508,7 @@
         const wallName = w.name || `Стена ${wIdx + 1}`;
         (w.panels || []).forEach(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} [${s.type}]`).join(' | ');
+          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join(' | ');
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
           csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${w.finish || appState.finish}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
@@ -3721,7 +3738,7 @@
         const wHeader = walls.length > 1 ? `[${w.name || `Стена ${idx + 1}`}]\n` : '';
         const lines = wPanels.map(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `Выпил В=${s.localH} П=${s.localX} [${s.type}]`).join('; ');
+          const sockText = socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join('; ');
           let extra = p.isDobor ? ` (заготовка ${p.blankW}мм, клин +${diffW}мм)` : '';
           return `  • ${wPrefix}№${p.id}: ${p.h}×${p.w} мм${extra} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
         }).join('\n');
@@ -3734,7 +3751,7 @@
         const wPrefix = walls.length > 1 ? `С${idx + 1}-` : '';
         const wHeader = walls.length > 1 ? `[${w.name || `Стена ${idx + 1}`}]\n` : '';
         const lines = wSocks.map(s => 
-          `  • Панель ${wPrefix}№${s.panelId}: В=${s.localH}мм, П=${s.localX}мм [${s.posts}, ${s.type}]`
+          `  • Панель ${wPrefix}№${s.panelId}: центр В=${s.localH}мм, П=${s.localX}мм, выпил ${sockCutout(s).text} [${s.type}]`
         ).join('\n');
         return wHeader + lines;
       }).filter(Boolean).join('\n\n');
@@ -3850,7 +3867,7 @@
           if (socks.length > 0) {
             socksHtml = socks.map(s => `
               <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:4px; padding:3px 6px; font-size:10px; color:#fca5a5; font-weight:700; margin-top:2px;">
-                🔴 ВЫПИЛ ПОД РОЗЕТКУ: В=${s.localH} мм (от низа детали), П=${s.localX} мм (от лев. края) [${escapeHTML(s.posts)}]
+                🔴 ВЫПИЛ ПОД РОЗЕТКУ: В=${s.localH} мм (от низа детали), П=${s.localX} мм (от лев. края), центр • выпил ${sockCutout(s).text}
               </div>
             `).join('');
           }
