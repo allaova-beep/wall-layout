@@ -209,6 +209,40 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+
+    /* Сворачиваемые блоки */
+    details.adv { background:#090e1a; border:1px solid #202d44; border-radius:10px; padding:8px 10px; margin-top:8px; }
+    details.adv > summary { cursor:pointer; font-size:12px; font-weight:700; color:#94a3b8; list-style:none; }
+    details.adv > summary::before { content:'▸ '; }
+    details.adv[open] > summary::before { content:'▾ '; }
+    .card.fold > .card-title { cursor:pointer; }
+    .card.fold > .card-title > span:first-child::before { content:'▾ '; color:#64748b; }
+    .card.fold.folded > .card-title > span:first-child::before { content:'▸ '; }
+    .card.fold.folded > :not(.card-title) { display:none !important; }
+    .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
+    #mobileStepBar { display:none; }
+
+    /* ТЕЛЕФОН: компактно, одна колонка, навигация внизу */
+    @media (max-width: 700px) {
+      #btnToggleViewMode, .step-banner-sub, .step-banner .btn, .step-actions,
+      .brand + div, .brand div div:nth-child(2) span:first-child { display:none !important; }
+      .app-header { gap:8px !important; padding:8px 10px !important; }
+      .step-btn:not(.active) span:not(.step-badge) { display:none; }
+      .stepper-nav { gap:4px !important; overflow:hidden !important; justify-content:space-between !important; }
+      .step-btn { flex:0 0 auto !important; min-width:0 !important; padding:6px 8px !important; }
+      .step-btn.active { flex:1 1 auto !important; }
+      .step-banner { display:none !important; }
+      .app-header > div:last-child { flex-wrap:nowrap !important; width:100%; }
+      .app-header > div:last-child .btn { flex:1; white-space:nowrap; font-size:11px !important; padding:0 6px !important; height:40px !important; }
+      .step-banner { padding:10px 12px !important; margin-bottom:10px !important; }
+      .step-banner-text { font-size:14px !important; }
+      body { padding-bottom: 84px !important; }
+      #mobileStepBar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:900; gap:8px; align-items:center;
+        padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,14,26,0.96); border-top:1px solid #1e293b; }
+      #mobileStepBar .btn { flex:1; height:48px; font-size:15px; }
+      #mbLabel { flex:0 0 auto; font-size:12px; color:#94a3b8; font-weight:700; text-align:center; min-width:70px; }
+      body.view-all-sections #mobileStepBar { display:none; }
+    }
     /* Режим "Все блоки" */
     body.view-all-sections .step-container {
       display: block !important; margin-bottom: 24px;
@@ -369,6 +403,13 @@
       </div>
     </div>
 
+    <!-- Нижняя панель навигации (телефон) -->
+    <div id="mobileStepBar">
+      <button class="btn btn-dark" id="mbBack" onclick="goToStep(currentStep-1)">← Назад</button>
+      <div id="mbLabel">Шаг 1 из 5</div>
+      <button class="btn btn-primary" id="mbNext" onclick="goToStep(currentStep+1)">Далее →</button>
+    </div>
+
     <!-- КОНТЕЙНЕРЫ ШАГОВ МАСТЕРА ЗАМЕРА -->
     <div id="stepsContainer">
 
@@ -519,7 +560,8 @@
               </div>
 
               <!-- 3 контрольные точки отклонения плоскости (пузо / лазерный луч) -->
-              <div id="boxPlane9" style="border-top:1px dashed #25334d; padding-top:8px; margin-top:4px;">
+              <details class="adv"><summary>Пузо стены (отклонение от лазера) — по умолчанию 0</summary>
+              <div id="boxPlane9" style="padding-top:8px; margin-top:4px;">
                 <span style="font-size:10px; color:#a78bfa; font-weight:bold; display:block; margin-bottom:4px;">ОТКЛОНЕНИЕ ПЛОСКОСТИ ОТ ЛАЗЕРА (ПУЗО СТЕНЫ, ММ):</span>
                 <div class="row" style="margin-bottom:0;">
                   <div class="col">
@@ -537,8 +579,10 @@
                 </div>
               </div>
 
+              </details>
             </div>
 
+            <details class="adv" style="margin-bottom:8px;"><summary>Зазоры цеха — по умолчанию 2 мм справа и сверху</summary>
             <!-- ТЕХНОЛОГИЧЕСКИЙ ЗАЗОР НА МОНТАЖ (ПРАВИЛО ЦЕХА: 2..5 мм) -->
             <div style="background:#090e1a; padding:10px; border-radius:10px; border:1px solid #202d44; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -568,6 +612,7 @@
               </div>
             </div>
 
+            </details>
             <!-- Итог анализа геометрии стены цехом -->
             <div style="background:#090e1a; padding:10px 12px; border-radius:10px; border:1px solid #25334d; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div>
@@ -908,8 +953,8 @@
             </div>
           </div>
 
-          <div class="card">
-            <div class="card-title">
+          <div class="card fold folded">
+            <div class="card-title" onclick="toggleFold(event,this)">
               <span>🪵 Спецификация раскроя деталей</span>
               <div style="display:flex; gap:6px;">
                 <button class="btn btn-amber" style="width:auto; height:30px; padding:0 10px; font-size:11px;" onclick="openLabelsModal()">
@@ -939,8 +984,8 @@
 
           </div>
           <div style="display:flex; flex-direction:column; gap:12px;">
-          <div class="card">
-            <div class="card-title">
+          <div class="card fold folded">
+            <div class="card-title" onclick="toggleFold(event,this)">
               <span>📦 Комплектация склада (формулы цеха)</span>
               <span class="badge badge-green">100% расчет</span>
             </div>
@@ -4037,8 +4082,20 @@
     let currentStep = 1;
     let isViewAllMode = false;
 
+    function toggleFold(ev, titleEl) {
+      if (ev && ev.target.closest('button')) return;
+      titleEl.parentElement.classList.toggle('folded');
+    }
+
     function goToStep(stepNum) {
       currentStep = Math.max(1, Math.min(5, stepNum));
+      const mbL = document.getElementById('mbLabel');
+      if (mbL) {
+        const names = ['', 'Стена', 'Проёмы', 'Фото', 'Материалы', 'Итог'];
+        mbL.innerHTML = `Шаг ${currentStep} из 5<br><span style="color:#e2e8f0;">${names[currentStep]}</span>`;
+        document.getElementById('mbBack').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        document.getElementById('mbNext').style.visibility = currentStep === 5 ? 'hidden' : 'visible';
+      }
       
       for (let i = 1; i <= 5; i++) {
         const sec = document.getElementById('stepSection' + i);
