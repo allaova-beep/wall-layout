@@ -5042,6 +5042,7 @@
 
     function goToStep(stepNum) {
       currentStep = Math.max(1, Math.min(5, stepNum));
+      try { if (typeof appState === 'object' && appState && appState.uiStep !== currentStep) { appState.uiStep = currentStep; if (window.__draftReady) saveActiveDraft(); } } catch (e) {}
       const mbL = document.getElementById('mbLabel');
       if (mbL) {
         const names = ['', 'Стена', 'Проёмы', 'Фото', 'Материалы', 'Итог'];
@@ -5268,6 +5269,7 @@
           appState = JSON.parse(draft);
         } else {
           createNewOrder(true);
+          window.__draftReady = true;
           return;
         }
       } catch (e) {}
@@ -5282,8 +5284,15 @@
       applyStateToUI(appState);
       updateHeaderSummary();
       updatePriceLockUI();
-      goToStep(1);
+      goToStep(appState.uiStep || 1);
+      window.__draftReady = true;
     };
+
+    // Свернули приложение / переключились на другое / вкладку выгрузила система — сохраняем на выходе
+    function flushDraftNow() { try { if (window.__draftReady) saveActiveDraft(); } catch (e) {} }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraftNow(); });
+    window.addEventListener('pagehide', flushDraftNow);
+    document.addEventListener('freeze', flushDraftNow);
   </script>
 </body>
 </html>
