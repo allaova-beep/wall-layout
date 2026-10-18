@@ -402,7 +402,7 @@
     <!-- ШАПКА С УПРАВЛЕНИЕМ БАЗОЙ ЗАМЕРОВ И БЫСТРОЙ СВОДКОЙ -->
     <header class="app-header">
       <div class="brand">
-        <div class="brand-logo">Т</div>
+        <div class="brand-logo no-invert">Т</div>
         <div>
           <div style="font-weight:900; font-size:16px; line-height:1.2;">Монтажник Т-1000</div>
           <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#c9ad8f;">
@@ -1311,6 +1311,7 @@
       </div>
 
       <div id="printSheet" style="background:#1b110a; padding:14px; border-radius:10px; border:1px solid #4d3219; font-size:12px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;"><b style="background:#6610f2; color:#fff; padding:3px 8px; border-radius:5px;">AKO Sound</b><span>ako-sound.ru • +7 (499) 647-62-88 • Производство: Электроугли</span></div>
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #3a2412; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
           <div>
             <div style="font-size:15px; font-weight:800;" id="mTitle">Заказ №101 от 15.09.2026</div>
@@ -4009,7 +4010,7 @@
           .replace(/#fff7ee/gi, '#111111').replace(/#ffffff/gi, '#111111')
           .replace(/fill="#1b110a"/gi, 'fill="#ffffff"')
           .replace(/#c9ad8f/gi, '#333333').replace(/#9a7a5c/gi, '#555555')
-          .replace(/#ffcf98/gi, '#e8b070').replace(/#ffbc00/gi, '#92400e').replace(/#f87171/gi, '#b91c1c');
+          .replace(/#ffcf98/gi, '#7a4a1e').replace(/#ffbc00/gi, '#92400e').replace(/#f87171/gi, '#b91c1c');
         const m = s2.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
         const vw = m ? parseFloat(m[1]) : 560, vh = m ? parseFloat(m[2]) : 300;
         s2 = s2.replace('<svg ', `<svg width="${vw * 3}" height="${vh * 3}" `);
@@ -4050,6 +4051,8 @@
       return o;
     }
 
+    const COMPANY = { name: 'AKO Sound', site: 'ako-sound.ru', phone: '+7 (499) 647-62-88' };
+
     async function buildClientCopyCanvas() {
       recomputeAllWalls();
       const W = 1240, M = 70;
@@ -4058,7 +4061,14 @@
       const ctx = c.getContext('2d');
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
       ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic';
-      let y = M + 20;
+      let y = M;
+      // шапка компании
+      ctx.fillStyle = '#1b110a'; ctx.fillRect(0, 0, W, 64);
+      ctx.fillStyle = '#6610f2'; ctx.fillRect(M, 14, 150, 36);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('AKO Sound', M + 18, 39);
+      ctx.fillStyle = '#ffcf98'; ctx.font = '18px sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(COMPANY.site + '  •  ' + COMPANY.phone, W - M, 39); ctx.textAlign = 'left';
+      y = 64 + 60; ctx.fillStyle = '#111';
       ctx.font = 'bold 38px sans-serif'; ctx.fillText('Согласование замера и сметы', M, y); y += 50;
       ctx.font = '26px sans-serif'; ctx.fillStyle = '#333';
       ctx.fillText(`${appState.orderNum || ''}  •  ${formatSignDate(appState.signature ? appState.signature.at : new Date().toISOString())}`, M, y); y += 38;
@@ -4953,7 +4963,8 @@
       try { localStorage.setItem('t1000_theme', light ? 'light' : 'dark'); } catch (e) {}
       showToast(light ? 'Светлая тема — для солнца' : 'Тёмная тема', light ? '☀️' : '🌙');
     }
-    try { if (localStorage.getItem('t1000_theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}
+    // по умолчанию светлая тема; тёмная — только если замерщик сам выбрал
+    try { if (localStorage.getItem('t1000_theme') !== 'dark') document.documentElement.classList.add('theme-light'); } catch (e) { document.documentElement.classList.add('theme-light'); }
     window.addEventListener('DOMContentLoaded', () => applyTheme(document.documentElement.classList.contains('theme-light')));
 
     let drawingScale = 1;
