@@ -221,6 +221,29 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      html.theme-light { filter: none !important; }
+      body.print-order { padding:0 !important; background:#fff !important; }
+      body.print-order > *:not(#modalOrder) { display:none !important; }
+      body.print-order #modalOrder { display:block !important; position:static !important; background:#fff !important; padding:0 !important; }
+      body.print-order #modalOrder .modal-sheet { max-height:none !important; overflow:visible !important; border:none !important; padding:0 !important; background:#fff !important; width:100% !important; max-width:none !important; }
+      body.print-order #modalOrder .modal-sheet > *:not(#printSheet) { display:none !important; }
+      body.print-order #printSheet svg { max-height:120mm !important; break-inside:avoid; page-break-inside:avoid; }
+      body.print-order #printSheet { font-size:10pt !important; }
+    }
+
+    /* PDF наряда: белый лист, чёрный текст, ничего не обрезается */
+    .pdf-light, .pdf-light * { max-height:none !important; overflow:visible !important; }
+    .pdf-light { background:#ffffff !important; border:none !important; border-radius:0 !important; color:#000 !important; }
+    .pdf-light * { color:#000 !important; background-color:transparent !important; border-color:#bbb !important; box-shadow:none !important; text-shadow:none !important; }
+    .pdf-light svg text { fill:#000 !important; }
+    .pdf-light svg rect[fill="#090e1a"] { fill:#ffffff !important; }
+    .pdf-light svg { background:#ffffff !important; }
+    .pdf-light svg { max-height:420px !important; width:100% !important; }
+    .pdf-light { box-sizing:border-box; padding:4px !important; }
+    .pdf-light * { box-sizing:border-box; max-width:100% !important; }
+
     /* Светлая тема для работы на солнце: инверсия тёмной схемы, фото остаются как есть */
     html.theme-light { filter: invert(1) hue-rotate(180deg); background:#05080f; }
     html.theme-light img, html.theme-light video, html.theme-light .no-invert { filter: invert(1) hue-rotate(180deg); }
@@ -3610,8 +3633,25 @@
     // =========================================================================
     // ПЕЧАТЬ ОФИЦИАЛЬНОГО БЛАНКА И НАКЛЕЕК ДЛЯ ЦЕХА
     // =========================================================================
+    // Пересчитать раскладку и привязку розеток для всех стен (не только открытой)
+    function recomputeAllWalls() {
+      ensureOrderWalls(appState);
+      syncAppStateToCurWall();
+      const keep = appState.activeWallIdx;
+      appState.walls.forEach((w, i) => {
+        appState.activeWallIdx = i;
+        syncCurWallToAppState();
+        try { autoDivideWall(); recalculateSockets(); } catch (e) { console.warn(e); }
+        syncAppStateToCurWall();
+      });
+      appState.activeWallIdx = keep;
+      syncCurWallToAppState();
+      try { autoDivideWall(); recalculateSockets(); } catch (e) {}
+    }
+
     function openOrderModal() {
       if (!requireMeasuredOrder()) return;
+      recomputeAllWalls();
       syncAppStateToCurWall();
       const walls = (appState.walls && appState.walls.length > 0) ? appState.walls : [appState];
 
@@ -4060,51 +4100,25 @@
       }
     }
 
+    // PDF наряда через системную печать браузера: «Сохранить как PDF».
+    // Даёт чёткий векторный документ на А4, многостраничный, без обрезки.
     function downloadOrderPDF() {
       if (!requireMeasuredOrder()) return;
-      showToast("Формирование PDF наряда...", "⏳", "#3b82f6");
-
       openOrderModal();
-
-      const element = document.getElementById('printSheet');
-      const originalBg = element.style.background;
-      const originalBorder = element.style.border;
-
-      element.style.background = "#0c1527";
-      element.style.border = "1px solid #334568";
-
-      const safeOrderName = (appState.orderNum || 'Заказ').replace(/\s+/g, '_');
-      const safeAddr = (appState.address || 'объект').replace(/[^a-zA-Zа-яА-Я0-9_]/g, '_').substring(0, 25);
-      const filename = `Наряд_${safeOrderName}_${safeAddr}.pdf`;
-
-      const opt = {
-        margin: [6, 6, 6, 6],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#0c1527',
-          logging: false
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      const sheet = document.getElementById('printSheet');
+      sheet.classList.add('pdf-light');
+      document.body.classList.add('print-order');
+      const prevTitle = document.title;
+      document.title = `Наряд_${(appState.orderNum || 'Заказ').replace(/\s+/g, '_')}`;
+      const cleanup = () => {
+        sheet.classList.remove('pdf-light');
+        document.body.classList.remove('print-order');
+        document.title = prevTitle;
+        window.removeEventListener('afterprint', cleanup);
       };
-
-      if (typeof html2pdf !== 'undefined') {
-        html2pdf().set(opt).from(element).save().then(() => {
-          element.style.background = originalBg;
-          element.style.border = originalBorder;
-          showToast(`PDF ${safeOrderName} скачан в память!`, "✓", "#10b981");
-        }).catch(err => {
-          element.style.background = originalBg;
-          element.style.border = originalBorder;
-          window.print();
-        });
-      } else {
-        element.style.background = originalBg;
-        element.style.border = originalBorder;
-        window.print();
-      }
+      window.addEventListener('afterprint', cleanup);
+      showToast('В окне печати выберите «Сохранить как PDF»', '📄', '#3b82f6');
+      setTimeout(() => { window.print(); setTimeout(cleanup, 1500); }, 300);
     }
 
     // Инициализация при старте
