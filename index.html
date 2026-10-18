@@ -3709,12 +3709,23 @@
           badgeText = `⚠️ Шов ${s.localX}мм!`;
         }
 
+        const co = sockCutout(s);
+        const rr = Math.max(2.2, (SOCK_HOLE_D / 2) * scale);
+        const pitchPx = SOCK_PITCH * scale;
+        const x0 = sx - ((co.n - 1) * pitchPx) / 2;
+        let holes = '';
+        for (let i = 0; i < co.n; i++) {
+          holes += `<circle cx="${x0 + i * pitchPx}" cy="${sy}" r="${rr}" fill="${badgeColor}" fill-opacity="0.85" stroke="${badgeStroke}" stroke-width="0.9"/>`;
+        }
+        const ly = sy - rr - 13;
+        const lw = Math.max(48, co.n * pitchPx + 8);
         svg += `
-          <g>
-            <rect x="${sx - 7}" y="${sy - 5}" width="14" height="10" rx="1.5" fill="${badgeColor}" stroke="${badgeStroke}" stroke-width="0.9"/>
-            <circle cx="${sx}" cy="${sy}" r="1.5" fill="#ffffff"/>
-            <rect x="${sx - 24}" y="${sy - 15}" width="48" height="10" rx="2" fill="#1b110a" stroke="${badgeStroke}" stroke-width="0.7"/>
-            <text x="${sx}" y="${sy - 8}" fill="#ffffff" font-size="6" font-weight="bold" text-anchor="middle">${badgeText}</text>
+          <g data-sock="${s.id}" style="cursor:pointer" onclick="event.stopPropagation(); showSocketInfo(${s.id})">
+            <rect x="${sx - lw / 2 - 4}" y="${sy - rr - 16}" width="${lw + 8}" height="${rr * 2 + 20}" fill="transparent"/>
+            ${holes}
+            <circle cx="${sx}" cy="${sy}" r="1.2" fill="#ffffff"/>
+            <rect x="${sx - 24}" y="${ly}" width="48" height="10" rx="2" fill="#1b110a" stroke="${badgeStroke}" stroke-width="0.7"/>
+            <text x="${sx}" y="${ly + 7}" fill="#ffffff" font-size="6" font-weight="bold" text-anchor="middle">${badgeText}</text>
           </g>
         `;
       });
@@ -3734,6 +3745,44 @@
       svg += `</svg>`;
       return svg;
     }
+
+    // Нажатие на розетку на чертеже — позиция в цифрах
+    function showSocketInfo(id) {
+      const w = getActiveWall();
+      const so = (w.sockets || []).find(x => x.id === id) || (appState.sockets || []).find(x => x.id === id);
+      if (!so) return;
+      const p = (appState.panels || []).find(pan => pan.id === so.panelId);
+      const co = sockCutout(so);
+      const cleanW = appState.cleanW || w.cleanW || 0;
+      const cleanH = appState.cleanH || w.cleanH || 0;
+      const row = (k, v) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid rgba(128,100,70,.25);"><span>${k}</span><b>${v}</b></div>`;
+      let html = `<div style="font-weight:800;font-size:15px;margin-bottom:6px;">${escapeHTML(so.type)} · ${co.n === 1 ? '1 пост' : co.n + ' поста'}</div>`;
+      html += row('От пола (до центра)', so.yWall + ' мм');
+      if (cleanH) html += row('От потолка (до центра)', Math.max(0, cleanH - so.yWall) + ' мм');
+      html += row('От левого угла (до центра)', Math.round(so.xWall) + ' мм');
+      html += row('От правого угла (до центра)', Math.max(0, Math.round(cleanW - so.xWall)) + ' мм');
+      if (p && so.localX != null) {
+        html += row('Панель', '№' + p.id + (p.w ? ' (ширина ' + p.w + ' мм)' : ''));
+        html += row('От левого края панели (до центра)', so.localX + ' мм');
+        if (p.w) html += row('От правого края панели (до центра)', Math.round(p.w - so.localX) + ' мм');
+        if (so.localH != null) html += row('От низа панели (до центра)', so.localH + ' мм');
+        if (p.w) {
+          html += row('До левого шва от края выпила', Math.round(so.localX - co.w / 2) + ' мм');
+          html += row('До правого шва от края выпила', Math.round(p.w - so.localX - co.w / 2) + ' мм');
+        }
+      }
+      html += row('Выпил', co.text);
+      let el = document.getElementById('sockInfoSheet');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'sockInfoSheet';
+        el.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:100000;background:var(--card,#fff7ee);color:var(--text,#2b1a0e);border-top:3px solid #d06d16;border-radius:16px 16px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.35);max-height:70vh;overflow:auto;font-size:14px;';
+        document.body.appendChild(el);
+      }
+      el.innerHTML = html + `<button onclick="closeSocketInfo()" style="margin-top:12px;width:100%;min-height:46px;border:0;border-radius:12px;background:#d06d16;color:#fff;font-weight:800;font-size:15px;">Закрыть</button>`;
+      el.style.display = 'block';
+    }
+    function closeSocketInfo() { const el = document.getElementById('sockInfoSheet'); if (el) el.style.display = 'none'; }
 
     function renderSvgBlueprint() {
       const box = document.getElementById('svgBox');
