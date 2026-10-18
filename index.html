@@ -284,7 +284,7 @@
       <div class="brand">
         <div class="brand-logo">P</div>
         <div>
-          <div style="font-weight:900; font-size:16px; line-height:1.2;">ПанельПро • Замерщик</div>
+          <div style="font-weight:900; font-size:16px; line-height:1.2;">Монтажник Т-1000</div>
           <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#94a3b8;">
             <span>Стандарт цеха: фанера 607×2440</span>
             <span id="lblAutoSaveStatus" style="color:#34d399; font-weight:700; font-size:10px;">● Память активна</span>
@@ -1277,6 +1277,36 @@
     // =========================================================================
     // МОДЕЛЬ МУЛЬТИ-СТЕН И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // =========================================================================
+    // Пустые размеры для нового замера: замерщик обязан вбить все точки сам
+    function blankWallDims(w) {
+      ['wTop','wMid','wBot','hLeft','hCenter','hRight'].forEach(k => { w[k] = null; });
+      w.panels = [];
+      return w;
+    }
+
+    // Проверка, что все стены заказа замерены (до отправки в цех)
+    function wallMissingFields(w) {
+      const need = [['wTop','ширина верх'],['wMid','ширина центр'],['wBot','ширина низ'],['hLeft','высота слева']];
+      if ((w.measureMode || 9) === 9) need.push(['hCenter','высота центр'], ['hRight','высота справа']);
+      return need.filter(([k]) => !(Number(w[k]) >= 500)).map(([, t]) => t);
+    }
+
+    function requireMeasuredOrder() {
+      ensureOrderWalls(appState);
+      syncAppStateToCurWall();
+      for (let i = 0; i < appState.walls.length; i++) {
+        const w = appState.walls[i];
+        const miss = wallMissingFields(w);
+        if (miss.length) {
+          if (i !== appState.activeWallIdx) switchActiveWall(i);
+          goToStep(1);
+          alert(`«${w.name || ('Стена ' + (i + 1))}»: не заполнено — ${miss.join(', ')}.\nНаряд не отправлен.`);
+          return false;
+        }
+      }
+      return true;
+    }
+
     function createDefaultWall(id, name, inheritHeight = 2486) {
       const cleanH = Math.max(1000, inheritHeight - 2);
       const doborH = cleanH > 2440 ? cleanH - 2440 : 0;
@@ -1644,6 +1674,7 @@
         wallName.trim() || `Стена ${nextNum}`,
         curWall.hLeft || 2500
       );
+      blankWallDims(newWall);
       newWall.baseMat = curWall.baseMat || 'МДФ 12 мм';
       newWall.series = curWall.series || 'Optima (60 мм)';
       newWall.finish = curWall.finish || 'Ткань рогожка 1й сорт';
@@ -1978,7 +2009,7 @@
     function createNewOrder() {
       const newNum = "Заказ №" + (Math.floor(Math.random() * 800) + 110);
       const today = new Date().toISOString().split('T')[0];
-      const wall = createDefaultWall('w_' + Date.now(), 'Стена 1', 2600);
+      const wall = blankWallDims(createDefaultWall('w_' + Date.now(), 'Стена 1', 2600));
       appState = {
         id: "order_" + Date.now(),
         orderNum: newNum,
@@ -2336,13 +2367,13 @@
     // =========================================================================
     function applyWallToUI(w) {
       if (!w) return;
-      document.getElementById('inWTop').value = w.wTop;
-      document.getElementById('inWMid').value = w.wMid;
-      document.getElementById('inWBot').value = w.wBot;
+      document.getElementById('inWTop').value = (w.wTop ?? '');
+      document.getElementById('inWMid').value = (w.wMid ?? '');
+      document.getElementById('inWBot').value = (w.wBot ?? '');
 
-      document.getElementById('inHLeft').value = w.hLeft;
-      document.getElementById('inHCenter').value = w.hCenter;
-      document.getElementById('inHRight').value = w.hRight;
+      document.getElementById('inHLeft').value = (w.hLeft ?? '');
+      document.getElementById('inHCenter').value = (w.hCenter ?? '');
+      document.getElementById('inHRight').value = (w.hRight ?? '');
 
       document.getElementById('inDevLeft').value = w.devLeft !== undefined ? w.devLeft : 0;
       document.getElementById('inDevCenter').value = w.devCenter !== undefined ? w.devCenter : 0;
@@ -3258,7 +3289,10 @@
 
         // Умная маркировка без наложения текста в узких или низких деталях
         if (pw >= 18 && panelH >= 12) {
-          if (panelH < 35 || pw < 45) {
+          if (pw < 45 && panelH >= 60) {
+            const cx = px + pw/2, cy = py + panelH/2;
+            svg += `<text x="${cx}" y="${cy + 3}" transform="rotate(-90 ${cx} ${cy})" fill="#f8fafc" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
+          } else if (panelH < 35 || pw < 45) {
             svg += `<text x="${px + pw/2}" y="${py + panelH/2 + 3}" fill="#f8fafc" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
           } else {
             svg += `
@@ -3449,6 +3483,7 @@
     }
 
     function downloadCuttingCSV() {
+      if (!requireMeasuredOrder()) return;
       ensureOrderWalls(appState);
       let csv = "Стена;№ детали;Ширина (мм);Высота (мм);Заготовка шир (мм);Основа;Отделка;Тип детали;Выпилы розеток;Примечание\n";
 
@@ -3481,6 +3516,7 @@
     // ПЕЧАТЬ ОФИЦИАЛЬНОГО БЛАНКА И НАКЛЕЕК ДЛЯ ЦЕХА
     // =========================================================================
     function openOrderModal() {
+      if (!requireMeasuredOrder()) return;
       syncAppStateToCurWall();
       const walls = (appState.walls && appState.walls.length > 0) ? appState.walls : [appState];
 
@@ -3744,6 +3780,7 @@
     }
 
     function sendToFactoryEmail() {
+      if (!requireMeasuredOrder()) return;
       if (!getFactoryEmail()) editFactorySettings();
       const email = getFactoryEmail();
       if (!email) { showToast("Сначала укажите почту цеха", "⚠️", "#f59e0b"); return; }
@@ -3753,10 +3790,19 @@
       showToast(`Открытие почты (${email})...`, "📧", "#3b82f6");
     }
 
-    function sendToMessengerMax() {
-      const text = encodeURIComponent(generateOrderSummaryText());
-      window.open(`https://t.me/share/url?url=&text=${text}`, '_blank');
-      showToast("Открытие мессенджера...", "💬", "#10b981");
+    async function sendToMessengerMax() {
+      if (!requireMeasuredOrder()) return;
+      const text = generateOrderSummaryText();
+      if (navigator.share) {
+        try { await navigator.share({ title: appState.orderNum, text }); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Наряд скопирован. Откройте MAX и вставьте в чат цеха", "📋", "#10b981");
+      } catch (e) {
+        prompt("Скопируйте наряд и вставьте в MAX:", text);
+      }
     }
 
     function renderLabels() {
@@ -3866,6 +3912,7 @@
     }
 
     function openLabelsModal() {
+      if (!requireMeasuredOrder()) return;
       renderLabels();
       document.getElementById('modalLabels').style.display = 'flex';
     }
@@ -3919,6 +3966,7 @@
     }
 
     function downloadOrderPDF() {
+      if (!requireMeasuredOrder()) return;
       showToast("Формирование PDF наряда...", "⏳", "#3b82f6");
 
       openOrderModal();
