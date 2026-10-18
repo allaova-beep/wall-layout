@@ -974,8 +974,8 @@
       <div class="step-container" id="stepSection4">
         <div class="step-banner">
           <div>
-            <div class="step-banner-text">🎨 Шаг 4: Конфигурация основы, отделки и верхнего добора</div>
-            <div class="step-banner-sub">Выберите ширину панели из листа (607 мм), вид верхнего добора при высоте >2440 мм, тип отделки и основу.</div>
+            <div class="step-banner-text">🎨 Шаг 4: Отделка и основа</div>
+            <div class="step-banner-sub">Выберите, какую отделку и какую основу хочет клиент. Остальное уже настроено цехом.</div>
           </div>
           <div style="display:flex; gap:8px;">
             <button class="btn btn-dark" style="width:auto; height:34px; padding:0 14px; font-size:12px;" onclick="goToStep(3)">← Назад</button>
@@ -985,10 +985,60 @@
         <div style="max-width:850px; margin:0 auto;">
           <div class="card">
             <div class="card-title">
-              <span>🪵 Ограничения цеха (Фанера 607×2440)</span>
-              <span class="badge badge-blue">Стандарт распила</span>
+              <span>🎨 Что выбрал клиент</span>
+              <span class="badge badge-blue">Только это</span>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label>Вид отделки</label>
+                <select id="inFinish" onchange="onFinishChanged()">
+                  <option value="Ткань рогожка 1й сорт">Рогожка 1 сорт</option>
+                  <option value="Ткань велюр Premium">Ткань велюр Premium</option>
+                  <option value="Эко-кожа">Эко-кожа</option>
+                  <option value="Рейки 30×10 мм">Рейки (30×10 мм)</option>
+                  <option value="Рейки 30×16 мм">Рейки (30×16 мм)</option>
+                  <option value="Рейки 30×22 мм (под потолок)">Рейки (30×22 мм под потолок)</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>Основа</label>
+                <select id="inBase" onchange="onStateUpdated()">
+                  <option value="МДФ 12 мм">МДФ 12 мм</option>
+                  <option value="МДФ 9 мм">МДФ 9 мм</option>
+                  <option value="Фанера 12 мм">Фанера 12 мм</option>
+                  <option value="ЛДСП 16 мм">ЛДСП 16 мм</option>
+                </select>
+              </div>
             </div>
 
+            <!-- Выбор клиента по верхнему добору -->
+            <div style="margin-top:4px;">
+              <label>Верхний добор (только если стена выше 2440 мм):</label>
+              <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:10px;">
+                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
+                  <input type="radio" name="rdDobor" value="solid" checked onchange="onDoborModeChanged()" style="width:16px; height:16px;">
+                  <div>
+                    <div style="font-weight:700; color:#fff; font-size:12px;">Длинные балки (1-2 цельных сегмента)</div>
+                    <div style="font-size:10px; color:#c9ad8f;">Потолочные балки длиной до 2.4м без частых вертикальных швов</div>
+                  </div>
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
+                  <input type="radio" name="rdDobor" value="per_panel" onchange="onDoborModeChanged()" style="width:16px; height:16px;">
+                  <div>
+                    <div style="font-weight:700; color:#fff; font-size:12px;">Составной добор («шов в шов» по 607 мм)</div>
+                    <div style="font-size:10px; color:#c9ad8f;">Каждая панель продолжается вверх отдельным кубиком в стык</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <details class="card" style="margin-top:12px;">
+            <summary style="cursor:pointer; font-weight:700; font-size:13px; color:#c9ad8f;">⚙️ Настройки цеха (обычно не трогаем)</summary>
+            <div style="margin-top:10px;">
+              <div style="font-size:11px; color:#c9ad8f; margin-bottom:10px;">Это решает цех, у всех заказов оно одинаковое. Меняйте, только если цех попросил.</div>
             <!-- Симметрия и балансировка узких остатков (Пункт цеха) -->
             <div style="margin-bottom:12px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
               <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:0;">
@@ -1015,28 +1065,6 @@
               </div>
             </div>
 
-            <!-- Выбор клиента по верхнему добору -->
-            <div style="margin-top:4px;">
-              <label>Верхний добор (если высота > 2440 мм):</label>
-              <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px; margin-bottom:10px;">
-                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
-                  <input type="radio" name="rdDobor" value="solid" checked onchange="onDoborModeChanged()" style="width:16px; height:16px;">
-                  <div>
-                    <div style="font-weight:700; color:#fff; font-size:12px;">Длинные балки (1-2 цельных сегмента)</div>
-                    <div style="font-size:10px; color:#c9ad8f;">Потолочные балки длиной до 2.4м без частых вертикальных швов</div>
-                  </div>
-                </label>
-
-                <label style="display:flex; align-items:center; gap:8px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; cursor:pointer;">
-                  <input type="radio" name="rdDobor" value="per_panel" onchange="onDoborModeChanged()" style="width:16px; height:16px;">
-                  <div>
-                    <div style="font-weight:700; color:#fff; font-size:12px;">Составной добор («шов в шов» по 607 мм)</div>
-                    <div style="font-size:10px; color:#c9ad8f;">Каждая панель продолжается вверх отдельным кубиком в стык</div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
             <div class="row">
               <div class="col">
                 <label>Высота верхнего добора (мм)</label>
@@ -1051,30 +1079,8 @@
                 </select>
               </div>
             </div>
-
-            <div class="row">
-              <div class="col">
-                <label>Основа</label>
-                <select id="inBase" onchange="onStateUpdated()">
-                  <option value="МДФ 12 мм">МДФ 12 мм</option>
-                  <option value="МДФ 9 мм">МДФ 9 мм</option>
-                  <option value="Фанера 12 мм">Фанера 12 мм</option>
-                  <option value="ЛДСП 16 мм">ЛДСП 16 мм</option>
-                </select>
-              </div>
-              <div class="col">
-                <label>Вид отделки</label>
-                <select id="inFinish" onchange="onFinishChanged()">
-                  <option value="Ткань рогожка 1й сорт">Рогожка 1 сорт</option>
-                  <option value="Ткань велюр Premium">Ткань велюр Premium</option>
-                  <option value="Эко-кожа">Эко-кожа</option>
-                  <option value="Рейки 30×10 мм">Рейки (30×10 мм)</option>
-                  <option value="Рейки 30×16 мм">Рейки (30×16 мм)</option>
-                  <option value="Рейки 30×22 мм (под потолок)">Рейки (30×22 мм под потолок)</option>
-                </select>
-              </div>
             </div>
-          </div>
+          </details>
 
         </div>
         <div class="step-actions" style="justify-content:space-between;">
