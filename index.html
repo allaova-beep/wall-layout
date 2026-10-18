@@ -221,6 +221,27 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    /* Примерка на фото */
+    #modalViz { display:none; position:fixed; inset:0; z-index:2300; background:#0b0f19; color:#f8fafc; flex-direction:column; }
+    #modalViz.open { display:flex; }
+    .vz-head { display:flex; gap:6px; align-items:center; padding:8px; }
+    .vz-title { flex:1; font-weight:800; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .vz-b { width:auto !important; min-width:44px; height:44px; padding:0 12px; background:#1e293b; color:#f8fafc; border:1px solid #334155; font-size:13px; }
+    .vz-b.on { background:#d97706; border-color:#f59e0b; }
+    .vz-primary { background:#2563eb !important; border-color:#3b82f6 !important; color:#fff !important; }
+    .vz-hint { padding:4px 10px 6px; font-size:12px; color:#cbd5e1; min-height:22px; }
+    .vz-stage { position:relative; flex:1; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#000; touch-action:none; }
+    #vzCanvas { max-width:100%; max-height:100%; touch-action:none; }
+    .vz-pick { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:24px; background:#0b0f19; }
+    .vz-thumbs { display:flex; gap:8px; overflow-x:auto; margin-top:14px; }
+    .vz-thumbs img { height:72px; border-radius:8px; border:2px solid #334155; cursor:pointer; }
+    .vz-tools { padding:8px 8px calc(8px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; }
+    .vz-row { display:flex; gap:6px; align-items:center; overflow-x:auto; }
+    .vz-row input[type=range] { flex:1; min-width:90px; }
+    .vz-sw { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; color:#cbd5e1; cursor:pointer; }
+    .vz-sw i { width:42px; height:42px; border-radius:10px; border:2px solid #334155; display:block; }
+    .vz-sw.on i { border-color:#f59e0b; box-shadow:0 0 0 2px #f59e0b; }
+
     @media print {
       body.print-labels > *:not(#modalLabels) { display:none !important; }
       body.print-labels #modalLabels { display:block !important; position:static !important; background:#fff !important; padding:0 !important; }
@@ -497,6 +518,42 @@
       <div class="sg-actions">
         <button class="btn btn-dark" onclick="clearSignPad()">Очистить</button>
         <button class="btn btn-primary" onclick="confirmSignature()">✓ Подписать</button>
+      </div>
+    </div>
+
+    <!-- Примерка панелей на фото комнаты -->
+    <div id="modalViz" class="no-invert">
+      <div class="vz-head">
+        <button class="btn vz-b" onclick="closeViz()">✕</button>
+        <div id="vzTitle" class="vz-title">Примерка на фото</div>
+        <button class="btn vz-b" id="vzCompare" onclick="vizToggleCompare()">До / после</button>
+        <button class="btn vz-b vz-primary" onclick="vizSave()">💾 Сохранить</button>
+      </div>
+      <div id="vzHint" class="vz-hint"></div>
+      <div id="vzStage" class="vz-stage">
+        <canvas id="vzCanvas"></canvas>
+        <div id="vzPick" class="vz-pick">
+          <div style="font-weight:800; font-size:16px; margin-bottom:10px;">Фото стены</div>
+          <label class="btn vz-primary" style="height:54px; font-size:16px; display:flex; align-items:center; justify-content:center;">
+            📷 Сфотографировать
+            <input type="file" accept="image/*" capture="environment" style="display:none" onchange="vizLoadFile(event)">
+          </label>
+          <label class="btn vz-b" style="height:48px; margin-top:8px; display:flex; align-items:center; justify-content:center;">
+            🖼 Из галереи
+            <input type="file" accept="image/*" style="display:none" onchange="vizLoadFile(event)">
+          </label>
+          <div id="vzOrderPhotos" class="vz-thumbs"></div>
+        </div>
+      </div>
+      <div id="vzTools" class="vz-tools">
+        <div class="vz-row" id="vzModes">
+          <button class="btn vz-b" data-m="corners" onclick="vizMode('corners')">📐 Углы</button>
+          <button class="btn vz-b" data-m="furniture" onclick="vizMode('furniture')">🛋 Мебель</button>
+          <button class="btn vz-b" data-m="erase" onclick="vizMode('erase')">🧽 Стереть</button>
+          <button class="btn vz-b" onclick="vizUndo()">↶</button>
+          <input type="range" id="vzBrush" min="10" max="120" value="40" title="Размер кисти">
+        </div>
+        <div class="vz-row vz-swatches" id="vzSwatches"></div>
       </div>
     </div>
 
@@ -883,6 +940,7 @@
               <span>📷 Фотофиксация объекта (Стена & Узлы)</span>
               <span id="badgePhotos" class="badge badge-blue">0 фото</span>
             </div>
+            <button class="btn" style="background:#0e7490; color:#fff; height:48px; font-size:14px; margin-bottom:10px;" onclick="openViz()">🎨 Примерка панелей на фото комнаты</button>
 
             <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">
               Прикрепите фото стены, выводов розеток и сложных углов для мастера цеха:
@@ -1167,6 +1225,9 @@
             <!-- Кнопки отправки и печати -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px; border-top:1px solid #202d44; padding-top:12px;">
               <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #f59e0b; color:#fbbf24;">Подписи клиента нет</div>
+              <button class="btn" style="background:#0e7490; color:#fff; height:48px; font-size:14px;" onclick="openViz()">
+                🎨 Примерка панелей на фото комнаты
+              </button>
               <button class="btn" id="btnSign" style="background:#7c3aed; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
                 ✍️ Подпись клиента
               </button>
@@ -4095,6 +4156,284 @@
         console.error(e);
         alert('Не получилось собрать PDF: ' + (e && e.message ? e.message : e));
       }
+    }
+
+    // =========================================================================
+    // ПРИМЕРКА ПАНЕЛЕЙ НА ФОТО: углы стены → перспектива → маска мебели
+    // =========================================================================
+    const VIZ_FINISHES = [
+      { id: 'grey',   name: 'Серая ткань',   kind: 'fabric', color: [128, 131, 136] },
+      { id: 'graph',  name: 'Графит',        kind: 'fabric', color: [62, 65, 72] },
+      { id: 'beige',  name: 'Беж',           kind: 'fabric', color: [196, 178, 152] },
+      { id: 'blue',   name: 'Синяя',         kind: 'fabric', color: [52, 78, 128] },
+      { id: 'green',  name: 'Олива',         kind: 'fabric', color: [104, 112, 78] },
+      { id: 'leather',name: 'Эко-кожа',      kind: 'leather', color: [90, 62, 48] },
+      { id: 'oak',    name: 'Рейки дуб',     kind: 'slats', color: [176, 132, 86] },
+      { id: 'walnut', name: 'Рейки орех',    kind: 'slats', color: [104, 70, 46] }
+    ];
+    const viz = { photo: null, w: 0, h: 0, pts: null, mode: 'corners', finish: VIZ_FINISHES[0], mask: null, history: [], compare: false, drag: -1, lum: null, avgLum: 1, tex: null, texKey: '' };
+
+    function openViz() {
+      if (!requireMeasuredOrder()) return;
+      recomputeAllWalls();
+      const w = getActiveWall();
+      document.getElementById('vzTitle').textContent = `Примерка: ${w.name || 'Стена'} ${appState.cleanW}×${appState.cleanH}`;
+      document.getElementById('modalViz').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      // фото заказа как быстрый выбор
+      const th = document.getElementById('vzOrderPhotos');
+      th.innerHTML = '';
+      (appState.photos || []).filter(p => p.dataUrl).forEach(p => {
+        const im = document.createElement('img'); im.src = p.dataUrl; im.onclick = () => vizLoadSrc(p.dataUrl); th.appendChild(im);
+      });
+      const sw = document.getElementById('vzSwatches');
+      sw.innerHTML = VIZ_FINISHES.map(f => `<div class="vz-sw${f.id === viz.finish.id ? ' on' : ''}" data-f="${f.id}" onclick="vizFinish('${f.id}')"><i style="background:${vizSwatchCss(f)}"></i>${f.name}</div>`).join('');
+      document.getElementById('vzPick').style.display = viz.photo ? 'none' : 'flex';
+      vizMode(viz.pts ? viz.mode : 'corners');
+      if (viz.photo) vizRender();
+    }
+    function closeViz() {
+      document.getElementById('modalViz').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function vizSwatchCss(f) {
+      const c = `rgb(${f.color.join(',')})`;
+      if (f.kind === 'slats') return `repeating-linear-gradient(90deg, ${c} 0 6px, #111 6px 8px)`;
+      return c;
+    }
+    function vizLoadFile(ev) {
+      const f = ev.target.files && ev.target.files[0]; if (!f) return;
+      const r = new FileReader(); r.onload = e => vizLoadSrc(e.target.result); r.readAsDataURL(f);
+      ev.target.value = '';
+    }
+    function vizLoadSrc(src) {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        viz.photo = c; viz.w = c.width; viz.h = c.height;
+        // яркость фото — чтобы на панелях остались тени и свет комнаты
+        const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        viz.lum = new Float32Array(c.width * c.height); let sum = 0;
+        for (let i = 0, j = 0; i < d.length; i += 4, j++) { const l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; viz.lum[j] = l; sum += l; }
+        viz.avgLum = sum / viz.lum.length || 1;
+        viz.mask = document.createElement('canvas'); viz.mask.width = c.width; viz.mask.height = c.height;
+        viz.history = [];
+        const mx = c.width * 0.15, my = c.height * 0.15;
+        viz.pts = [[mx, my], [c.width - mx, my], [c.width - mx, c.height - my], [mx, c.height - my]];
+        const cv = document.getElementById('vzCanvas'); cv.width = c.width; cv.height = c.height;
+        document.getElementById('vzPick').style.display = 'none';
+        vizMode('corners');
+        vizBindPointer();
+        vizRender();
+      };
+      img.src = src;
+    }
+    function vizMode(m) {
+      viz.mode = m;
+      document.querySelectorAll('#vzModes [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+      const hints = {
+        corners: 'Перетащите 4 оранжевые точки в углы стены: верх-лево, верх-право, низ-право, низ-лево (пол — потолок, угол — угол).',
+        furniture: 'Закрасьте пальцем мебель и предметы перед стеной — панели уйдут за них.',
+        erase: 'Сотрите лишнее закрашивание.'
+      };
+      document.getElementById('vzHint').textContent = hints[m] || '';
+      if (viz.photo) vizRender();
+    }
+    function vizFinish(id) {
+      viz.finish = VIZ_FINISHES.find(f => f.id === id) || viz.finish;
+      document.querySelectorAll('#vzSwatches .vz-sw').forEach(e => e.classList.toggle('on', e.dataset.f === id));
+      vizRender();
+    }
+    function vizToggleCompare() { viz.compare = !viz.compare; document.getElementById('vzCompare').classList.toggle('on', viz.compare); vizRender(); }
+    function vizUndo() {
+      const last = viz.history.pop(); if (!last) return;
+      viz.mask.getContext('2d').putImageData(last, 0, 0); vizRender();
+    }
+
+    // Текстура стены в миллиметрах: панели, швы, добор, проёмы, розетки
+    function vizBuildTexture() {
+      const W = appState.cleanW, H = appState.cleanH;
+      const key = [viz.finish.id, W, H, JSON.stringify((appState.panels || []).map(p => [p.startX, p.w, p.yFloor || 0, p.h])), JSON.stringify(appState.openings || []), JSON.stringify(appState.sockets || [])].join('|');
+      if (viz.tex && viz.texKey === key) return viz.tex;
+      const k = Math.min(1, 1400 / W);           // пикселей на мм
+      const c = document.createElement('canvas'); c.width = Math.round(W * k); c.height = Math.round(H * k);
+      const x = c.getContext('2d');
+      const f = viz.finish, [r, g, b] = f.color;
+      x.fillStyle = `rgb(${r},${g},${b})`; x.fillRect(0, 0, c.width, c.height);
+      const img = x.getImageData(0, 0, c.width, c.height), d = img.data;
+      for (let yy = 0; yy < c.height; yy++) for (let xx = 0; xx < c.width; xx++) {
+        const i = (yy * c.width + xx) * 4;
+        let n = 0;
+        if (f.kind === 'fabric') n = (Math.random() - 0.5) * 16 + ((xx + yy) % 3 === 0 ? 4 : 0);
+        else if (f.kind === 'leather') n = (Math.random() - 0.5) * 10 + Math.sin(xx * 0.07) * Math.cos(yy * 0.05) * 6;
+        else n = (Math.random() - 0.5) * 8 + Math.sin(yy * 0.08 + xx * 0.9) * 10;
+        d[i] = Math.max(0, Math.min(255, r + n)); d[i + 1] = Math.max(0, Math.min(255, g + n)); d[i + 2] = Math.max(0, Math.min(255, b + n));
+      }
+      x.putImageData(img, 0, 0);
+      if (f.kind === 'slats') {                  // рейки 30 мм, щель 10 мм на чёрном войлоке
+        x.fillStyle = 'rgba(15,15,15,0.92)';
+        for (let mm = 30; mm < W; mm += 40) x.fillRect(mm * k, 0, Math.max(1, 10 * k), c.height);
+      }
+      const yTop = mm => (H - mm) * k;           // мм от пола → пиксели от верха
+      x.strokeStyle = 'rgba(0,0,0,0.55)'; x.lineWidth = Math.max(1.5, 3 * k);
+      (appState.panels || []).forEach(p => {
+        const y0 = yTop((p.yFloor || 0) + p.h), y1 = yTop(p.yFloor || 0);
+        x.strokeRect(p.startX * k, y0, p.w * k, y1 - y0);
+      });
+      const mainTop = Math.max(...(appState.panels || [{ h: H }]).map(p => (p.yFloor || 0) + p.h));
+      if (mainTop < H - 2) { x.beginPath(); x.moveTo(0, yTop(mainTop)); x.lineTo(c.width, yTop(mainTop)); x.stroke(); }
+      (appState.sockets || []).forEach(s => {
+        if (s.inOpening) return;
+        const cut = sockCutout(s), cx = s.xWall * k, cy = yTop(s.yWall);
+        x.fillStyle = '#f1f1ef'; x.strokeStyle = 'rgba(0,0,0,0.4)'; x.lineWidth = 1;
+        const fw = (cut.w + 18) * k, fh = (cut.h + 18) * k;
+        x.fillRect(cx - fw / 2, cy - fh / 2, fw, fh); x.strokeRect(cx - fw / 2, cy - fh / 2, fw, fh);
+      });
+      x.globalCompositeOperation = 'destination-out';
+      (appState.openings || []).forEach(o => {
+        const y0 = yTop((o.yFloor || 0) + o.h);
+        x.fillRect(o.xWall * k, y0, o.w * k, o.h * k);
+      });
+      x.globalCompositeOperation = 'source-over';
+      viz.tex = c; viz.texKey = key;
+      return c;
+    }
+
+    // Гомография квадрата [0..1]² → 4 точки
+    function vizHomography(p) {
+      const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = p;
+      const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3;
+      const dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+      let g = 0, h = 0;
+      const den = dx1 * dy2 - dx2 * dy1;
+      if (Math.abs(den) > 1e-9) { g = (dx3 * dy2 - dx2 * dy3) / den; h = (dx1 * dy3 - dx3 * dy1) / den; }
+      const a = x1 - x0 + g * x1, b = x3 - x0 + h * x3, c = x0;
+      const d = y1 - y0 + g * y1, e = y3 - y0 + h * y3, f = y0;
+      return (u, v) => { const w = g * u + h * v + 1; return [(a * u + b * v + c) / w, (d * u + e * v + f) / w]; };
+    }
+    function vizDrawTri(ctx, img, s0, s1, s2, d0, d1, d2) {
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(d0[0], d0[1]); ctx.lineTo(d1[0], d1[1]); ctx.lineTo(d2[0], d2[1]); ctx.closePath();
+      // небольшое расширение против щелей между треугольниками
+      ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(0,0,0,0)'; ctx.clip();
+      const den = s0[0] * (s2[1] - s1[1]) - s1[0] * s2[1] + s2[0] * s1[1] + (s1[0] - s2[0]) * s0[1];
+      if (Math.abs(den) < 1e-9) { ctx.restore(); return; }
+      const m11 = -(s0[1] * (d2[0] - d1[0]) - s1[1] * d2[0] + s2[1] * d1[0] + (s1[1] - s2[1]) * d0[0]) / den;
+      const m12 = (s1[1] * d2[1] + s0[1] * (d1[1] - d2[1]) - s2[1] * d1[1] + (s2[1] - s1[1]) * d0[1]) / den;
+      const m21 = (s0[0] * (d2[0] - d1[0]) - s1[0] * d2[0] + s2[0] * d1[0] + (s1[0] - s2[0]) * d0[0]) / den;
+      const m22 = -(s1[0] * d2[1] + s0[0] * (d1[1] - d2[1]) - s2[0] * d1[1] + (s2[0] - s1[0]) * d0[1]) / den;
+      const dx = (s0[0] * (s2[1] * d1[0] - s1[1] * d2[0]) + s0[1] * (s1[0] * d2[0] - s2[0] * d1[0]) + (s2[0] * s1[1] - s1[0] * s2[1]) * d0[0]) / den;
+      const dy = (s0[0] * (s2[1] * d1[1] - s1[1] * d2[1]) + s0[1] * (s1[0] * d2[1] - s2[0] * d1[1]) + (s2[0] * s1[1] - s1[0] * s2[1]) * d0[1]) / den;
+      ctx.transform(m11, m12, m21, m22, dx, dy);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
+    function vizComposeOverlay() {
+      const tex = vizBuildTexture();
+      const ov = document.createElement('canvas'); ov.width = viz.w; ov.height = viz.h;
+      const o = ov.getContext('2d');
+      const H = vizHomography(viz.pts), N = 18, TW = tex.width, TH = tex.height;
+      for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+        const u0 = i / N, u1 = (i + 1) / N, v0 = j / N, v1 = (j + 1) / N;
+        const s00 = [u0 * TW, v0 * TH], s10 = [u1 * TW, v0 * TH], s11 = [u1 * TW, v1 * TH], s01 = [u0 * TW, v1 * TH];
+        const d00 = H(u0, v0), d10 = H(u1, v0), d11 = H(u1, v1), d01 = H(u0, v1);
+        vizDrawTri(o, tex, s00, s10, s11, d00, d10, d11);
+        vizDrawTri(o, tex, s00, s11, s01, d00, d11, d01);
+      }
+      // свет и тени комнаты
+      const id = o.getImageData(0, 0, viz.w, viz.h), d = id.data, L = viz.lum, A = viz.avgLum;
+      for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+        if (!d[i + 3]) continue;
+        const k = Math.max(0.55, Math.min(1.35, L[j] / A));
+        d[i] = Math.min(255, d[i] * k); d[i + 1] = Math.min(255, d[i + 1] * k); d[i + 2] = Math.min(255, d[i + 2] * k);
+      }
+      o.putImageData(id, 0, 0);
+      // мебель поверх панелей
+      o.globalCompositeOperation = 'destination-out';
+      o.drawImage(viz.mask, 0, 0);
+      o.globalCompositeOperation = 'source-over';
+      return ov;
+    }
+    function vizRender() {
+      if (!viz.photo) return;
+      const cv = document.getElementById('vzCanvas'), x = cv.getContext('2d');
+      x.clearRect(0, 0, cv.width, cv.height);
+      x.drawImage(viz.photo, 0, 0);
+      if (!viz.compare) x.drawImage(vizComposeOverlay(), 0, 0);
+      if (viz.mode === 'furniture' || viz.mode === 'erase') {
+        x.globalAlpha = 0.35; x.drawImage(vizTint(viz.mask, '#ff2d55'), 0, 0); x.globalAlpha = 1;
+      }
+      if (viz.mode === 'corners') {
+        const s = cv.width / cv.getBoundingClientRect().width || 1;
+        x.strokeStyle = '#f59e0b'; x.lineWidth = 2 * s; x.beginPath();
+        viz.pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); x.closePath(); x.stroke();
+        viz.pts.forEach((p, i) => {
+          x.fillStyle = '#f59e0b'; x.beginPath(); x.arc(p[0], p[1], 14 * s, 0, Math.PI * 2); x.fill();
+          x.fillStyle = '#111'; x.font = `bold ${12 * s}px sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+          x.fillText(String(i + 1), p[0], p[1]);
+        });
+      }
+    }
+    function vizTint(mask, color) {
+      const c = document.createElement('canvas'); c.width = mask.width; c.height = mask.height;
+      const x = c.getContext('2d'); x.drawImage(mask, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
+      return c;
+    }
+    function vizBindPointer() {
+      const cv = document.getElementById('vzCanvas');
+      if (cv._bound) return; cv._bound = true;
+      const toImg = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+      let painting = false, last = null, raf = 0;
+      const paint = p => {
+        const m = viz.mask.getContext('2d'), s = cv.width / cv.getBoundingClientRect().width;
+        m.globalCompositeOperation = viz.mode === 'erase' ? 'destination-out' : 'source-over';
+        m.strokeStyle = '#000'; m.lineCap = 'round'; m.lineJoin = 'round';
+        m.lineWidth = parseInt(document.getElementById('vzBrush').value) * s;
+        m.beginPath(); m.moveTo(last[0], last[1]); m.lineTo(p[0], p[1]); m.stroke();
+        last = p;
+        if (!raf) raf = requestAnimationFrame(() => { raf = 0; vizRender(); });
+      };
+      cv.addEventListener('pointerdown', e => {
+        const p = toImg(e); cv.setPointerCapture(e.pointerId); e.preventDefault();
+        if (viz.mode === 'corners') {
+          const s = cv.width / cv.getBoundingClientRect().width;
+          let best = -1, bd = 1e9;
+          viz.pts.forEach((q, i) => { const dd = Math.hypot(q[0] - p[0], q[1] - p[1]); if (dd < bd) { bd = dd; best = i; } });
+          viz.drag = bd < 60 * s ? best : -1;
+        } else {
+          viz.history.push(viz.mask.getContext('2d').getImageData(0, 0, viz.w, viz.h));
+          if (viz.history.length > 15) viz.history.shift();
+          painting = true; last = p; paint(p);
+        }
+      });
+      cv.addEventListener('pointermove', e => {
+        const p = toImg(e);
+        if (viz.mode === 'corners' && viz.drag >= 0) {
+          viz.pts[viz.drag] = [Math.max(0, Math.min(viz.w, p[0])), Math.max(0, Math.min(viz.h, p[1]))];
+          if (!raf) raf = requestAnimationFrame(() => { raf = 0; vizRender(); });
+        } else if (painting) paint(p);
+      });
+      const up = () => { viz.drag = -1; painting = false; };
+      cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    }
+    async function vizSave() {
+      if (!viz.photo) return;
+      const c = document.createElement('canvas'); c.width = viz.w; c.height = viz.h;
+      const x = c.getContext('2d'); x.drawImage(viz.photo, 0, 0); x.drawImage(vizComposeOverlay(), 0, 0);
+      const photoObj = {
+        id: 'ph_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        dataUrl: c.toDataURL('image/jpeg', 0.8),
+        caption: `Примерка: ${viz.finish.name}`,
+        timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      };
+      await storePhotoBlob(photoObj);
+      if (!appState.photos) appState.photos = [];
+      appState.photos.push(photoObj);
+      if (typeof renderPhotosGallery === 'function') renderPhotosGallery();
+      saveActiveDraft();
+      showToast(`Примерка «${viz.finish.name}» сохранена в фото заказа`, '💾', '#10b981');
     }
 
     // Пересчитать раскладку и привязку розеток для всех стен (не только открытой)
