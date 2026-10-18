@@ -127,6 +127,7 @@
       padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent;
       color: #c9ad8f; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
+    .step-short { display:none; }
     .step-btn:hover { background: #311c0d; color: #f1f5f9; }
     .step-btn.active {
       background: #311c0d; border-color: #ffcf98; color: #ffffff;
@@ -311,6 +312,8 @@
       .brand + div, .brand div div:nth-child(2) span:first-child { display:none !important; }
       .app-header { gap:8px !important; padding:8px 10px !important; }
       .step-btn:not(.active) span:not(.step-badge) { display:none; }
+      .step-btn:not(.active) { flex-direction:column !important; gap:1px !important; padding:4px 4px !important; }
+      .step-btn:not(.active) .step-short { display:block; font-size:9px; line-height:1; font-weight:700; }
       .stepper-nav { gap:4px !important; overflow:hidden !important; justify-content:space-between !important; }
       .step-btn { flex:0 0 auto !important; min-width:0 !important; padding:6px 8px !important; }
       .step-btn.active { flex:1 1 auto !important; }
@@ -319,7 +322,7 @@
       .app-header > div:last-child .btn { flex:1; white-space:nowrap; font-size:11px !important; padding:0 6px !important; height:40px !important; }
       .step-banner { padding:10px 12px !important; margin-bottom:10px !important; }
       .step-banner-text { font-size:14px !important; }
-      body { padding-bottom: 84px !important; }
+      body { padding-bottom: 110px !important; }
       #mobileStepBar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:900; gap:8px; align-items:center;
         padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,14,26,0.96); border-top:1px solid #311c0d; }
       #mobileStepBar .btn { flex:1; height:48px; font-size:15px; }
@@ -407,7 +410,7 @@
           <div style="font-weight:900; font-size:16px; line-height:1.2;">Монтажник Т-1000</div>
           <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#c9ad8f;">
             <span>AKO Sound</span>
-            <span id="lblAutoSaveStatus" style="color:#34d399; font-weight:700; font-size:10px;">● Память активна</span>
+            <span id="lblAutoSaveStatus" style="color:#34d399; font-weight:700; font-size:10px;">● Заказ сохранён</span>
           </div>
         </div>
       </div>
@@ -449,23 +452,23 @@
       <div class="stepper-nav">
         <button class="step-btn active" id="stepNav1" onclick="goToStep(1)">
           <span class="step-badge" id="stepBadge1">1</span>
-          <span>📏 1. Стена и адрес</span>
+          <span>📏 1. Стена и адрес</span><small class="step-short">Стена</small>
         </button>
         <button class="step-btn" id="stepNav2" onclick="goToStep(2)">
           <span class="step-badge" id="stepBadge2">2</span>
-          <span>🚪 2. Проёмы и розетки</span>
+          <span>🚪 2. Проёмы и розетки</span><small class="step-short">Розетки</small>
         </button>
         <button class="step-btn" id="stepNav3" onclick="goToStep(3)">
           <span class="step-badge" id="stepBadge3">3</span>
-          <span>📷 3. Фото объекта</span>
+          <span>📷 3. Фото объекта</span><small class="step-short">Фото</small>
         </button>
         <button class="step-btn" id="stepNav4" onclick="goToStep(4)">
           <span class="step-badge" id="stepBadge4">4</span>
-          <span>🎨 4. Материалы & Добор</span>
+          <span>🎨 4. Материал</span><small class="step-short">Материал</small>
         </button>
         <button class="step-btn" id="stepNav5" onclick="goToStep(5)">
           <span class="step-badge" id="stepBadge5">5</span>
-          <span>🚀 5. Чертеж & Смета</span>
+          <span>🚀 5. Итог и смета</span><small class="step-short">Итог</small>
         </button>
       </div>
     </div>
@@ -581,7 +584,7 @@
         <div class="step-grid-2col">
           <div class="card">
             <div class="card-title">
-              <span>📋 Карточка заказа & Логистика</span>
+              <span>📋 Заказ и доставка</span>
               <span id="badgeOrder" class="badge badge-blue">Заказ №101</span>
             </div>
 
@@ -599,7 +602,7 @@
             <div class="row">
               <div class="col">
                 <label>Клиент (ФИО — для подписи)</label>
-                <input id="inClientName" placeholder="напр. Иванова Мария Петровна" autocomplete="off" oninput="onStateUpdated()">
+                <input id="inClientName" placeholder="Иванова Мария" autocomplete="off" oninput="onStateUpdated()">
               </div>
               <div class="col">
                 <label>Телефон / почта клиента</label>
@@ -618,9 +621,9 @@
               <div class="col">
                 <label>Лифт</label>
                 <select id="inLift" onchange="onStateUpdated()">
-                  <option value="Грузовой">Есть грузовой</option>
+                  <option value="Грузовой">Грузовой</option>
                   <option value="Пассажирский">Пассажирский</option>
-                  <option value="Пешком (без лифта)">Пешком (без лифта)</option>
+                  <option value="Пешком (без лифта)">Без лифта</option>
                 </select>
               </div>
               <div class="col">
@@ -628,9 +631,9 @@
                 <input id="inFloor" type="number" inputmode="numeric" value="" placeholder="5" oninput="onStateUpdated()">
               </div>
               <div class="col">
-                <label>Монтаж</label>
+                <label>Работы</label>
                 <select id="inInstall" onchange="onStateUpdated()">
-                  <option value="Да + Доставка">Монтаж + Доставка</option>
+                  <option value="Да + Доставка">Монтаж</option>
                   <option value="Только доставка">Только доставка</option>
                   <option value="Самовывоз">Самовывоз</option>
                 </select>
@@ -638,8 +641,8 @@
             </div>
 
             <div>
-              <label>Препятствия / примечания цеху</label>
-              <input id="inNotes" placeholder="напр. трубы отопления справа, шкаф разбор/сбор" value="" oninput="onStateUpdated()">
+              <label>Заметки для цеха</label>
+              <input id="inNotes" placeholder="трубы справа, двигать шкаф" value="" oninput="onStateUpdated()">
             </div>
           </div>
 
@@ -651,10 +654,10 @@
 
             <!-- Переключатель режима замера -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:11px; color:#c9ad8f;">Сетка замера цеха:</span>
-              <div class="btn-toggle-group" style="width:190px;">
-                <button class="btn-toggle active" id="btnMode9" onclick="toggleMeasureMode(9)">9 точек (Цех)</button>
-                <button class="btn-toggle" id="btnMode3" onclick="toggleMeasureMode(3)">Экспресс (3)</button>
+              <span style="font-size:11px; color:#c9ad8f;">Сколько мерить:</span>
+              <div class="btn-toggle-group" style="width:210px;">
+                <button class="btn-toggle active" id="btnMode9" onclick="toggleMeasureMode(9)">Подробно (9)</button>
+                <button class="btn-toggle" id="btnMode3" onclick="toggleMeasureMode(3)">Быстро (3)</button>
               </div>
             </div>
 
@@ -663,7 +666,7 @@
               <!-- 1. Верхний горизонт (под потолком) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#ffbc00; font-weight:bold;">1. ШИРИНА ВЕРХ (под потолком):</span>
+                  <span style="font-size:10px; color:#ffbc00; font-weight:bold;">1. ШИРИНА под потолком</span>
                   <span style="font-size:10px; color:#c9ad8f;">от угла в угол</span>
                 </div>
                 <div class="laser-line-row">
@@ -678,8 +681,8 @@
               <!-- 2. Средний горизонт (на уровне 1.2 - 1.5м) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#c9ad8f; font-weight:bold;">2. ШИРИНА ЦЕНТР (на высоте 1.5м):</span>
-                  <span style="font-size:10px; color:#c9ad8f;">проверка пуза штукатурки</span>
+                  <span style="font-size:10px; color:#c9ad8f; font-weight:bold;">2. ШИРИНА на высоте 1,5 м</span>
+                  <span style="font-size:10px; color:#c9ad8f;">посередине</span>
                 </div>
                 <div class="laser-line-row">
                   <div class="laser-arrow-h"></div>
@@ -693,8 +696,8 @@
               <!-- 3. Нижний горизонт (у плинтуса) -->
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                  <span style="font-size:10px; color:#ffcf98; font-weight:bold;">3. ШИРИНА НИЗ (у пола):</span>
-                  <span style="font-size:10px; color:#c9ad8f;">базовая линия пола</span>
+                  <span style="font-size:10px; color:#ffcf98; font-weight:bold;">3. ШИРИНА у пола</span>
+                  <span style="font-size:10px; color:#c9ad8f;">над плинтусом</span>
                 </div>
                 <div class="laser-line-row">
                   <div class="laser-arrow-h" style="background:#ffcf98;"></div>
@@ -707,7 +710,7 @@
 
               <!-- Высоты в 3-х точках (Лево, Центр, Право) -->
               <div style="border-top:1px dashed #4d3219; padding-top:8px; margin-top:2px;">
-                <span style="font-size:10px; color:#34d399; font-weight:bold; display:block; margin-bottom:4px;">ВЕРТИКАЛИ ВЫСОТЫ (от пола до потолка):</span>
+                <span style="font-size:10px; color:#34d399; font-weight:bold; display:block; margin-bottom:4px;">ВЫСОТА от пола до потолка:</span>
                 <div class="row" style="margin-bottom:0;">
                   <div class="col">
                     <label>Левый угол</label>
@@ -725,7 +728,7 @@
               </div>
 
               <!-- 3 контрольные точки отклонения плоскости (пузо / лазерный луч) -->
-              <details class="adv"><summary>Пузо стены (отклонение от лазера) — по умолчанию 0</summary>
+              <details class="adv"><summary>Стена горбатая? Впишите, на сколько мм (обычно не нужно)</summary>
               <div id="boxPlane9" style="padding-top:8px; margin-top:4px;">
                 <span style="font-size:10px; color:#a78bfa; font-weight:bold; display:block; margin-bottom:4px;">ОТКЛОНЕНИЕ ПЛОСКОСТИ ОТ ЛАЗЕРА (ПУЗО СТЕНЫ, ММ):</span>
                 <div class="row" style="margin-bottom:0;">
@@ -747,7 +750,7 @@
               </details>
             </div>
 
-            <details class="adv" style="margin-bottom:8px;"><summary>Зазоры цеха — по умолчанию 2 мм справа и сверху</summary>
+            <details class="adv" style="margin-bottom:8px;"><summary>Зазоры (обычно не трогать, стоит 2 мм)</summary>
             <!-- ТЕХНОЛОГИЧЕСКИЙ ЗАЗОР НА МОНТАЖ (ПРАВИЛО ЦЕХА: 2..5 мм) -->
             <div style="background:#1b110a; padding:10px; border-radius:10px; border:1px solid #4d3219; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -781,7 +784,7 @@
             <!-- Итог анализа геометрии стены цехом -->
             <div style="background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div>
-                <span style="font-size:10px; color:#c9ad8f; text-transform:uppercase; font-weight:bold;">Рабочий габарит с зазором:</span>
+                <span style="font-size:10px; color:#c9ad8f; text-transform:uppercase; font-weight:bold;">Размер для цеха:</span>
                 <div id="lblCleanDim" style="font-size:17px; font-weight:900; color:#34d399; font-family:monospace;">4317 × 2484 мм</div>
               </div>
               <div id="lblKlinAdvice" style="font-size:11px; color:#ffbc00; text-align:right; font-weight:bold; max-width:210px;">
@@ -813,7 +816,7 @@
         <div class="step-grid-2col">
           <div class="card" style="border-color:#d06d16;">
             <div class="card-title">
-              <span>🚪 Проёмы и препятствия (Двери, Окна, Колонны)</span>
+              <span>🚪 Двери, окна, колонны</span>
               <span id="badgeOpenings" class="badge badge-amber">Нет проемов</span>
             </div>
 
@@ -838,15 +841,15 @@
 
             <div class="row">
               <div class="col">
-                <label id="lblOpenDist">Отступ от угла (X, мм)</label>
+                <label id="lblOpenDist">От угла, мм</label>
                 <input id="inOpenDist" type="number" inputmode="numeric" value="" placeholder="1200">
               </div>
               <div class="col">
-                <label>Ширина проема (W, мм)</label>
+                <label>Ширина, мм</label>
                 <input id="inOpenW" type="number" inputmode="numeric" value="" placeholder="950">
               </div>
               <div class="col">
-                <label>Высота проема (H, мм)</label>
+                <label>Высота, мм</label>
                 <input id="inOpenH" type="number" inputmode="numeric" value="" placeholder="2097">
               </div>
               <div class="col" id="boxOpenFloorY" style="display:none;">
@@ -855,15 +858,15 @@
               </div>
             </div>
 
-            <button class="btn btn-amber" onclick="addWallOpening()">+ Посадить проём на чертеж</button>
+            <button class="btn btn-amber" onclick="addWallOpening()">+ Добавить дверь / окно</button>
 
             <div id="lstOpenings" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
           </div>
 
           <div class="card">
             <div class="card-title">
-              <span>⚡ Электрика & Розетки (от ближайшего края)</span>
-              <span class="badge badge-blue">Подрозетник d68 Greenel</span>
+              <span>⚡ Розетки и выключатели</span>
+              <span class="badge badge-blue">мерить до центра</span>
             </div>
 
             <div class="row">
@@ -905,7 +908,7 @@
               </div>
             </div>
 
-            <button class="btn btn-primary" onclick="addSmartSocket()">+ Рассчитать и посадить на панель</button>
+            <button class="btn btn-primary" onclick="addSmartSocket()">+ Добавить розетку</button>
 
             <div id="lstSockets" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
             <div id="boxSeamStep2" style="display:none; margin-top:8px; padding:10px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:12px; font-weight:700;">
@@ -937,13 +940,11 @@
         <div style="max-width:850px; margin:0 auto;">
           <div class="card" style="border-color:#ffcf98;">
             <div class="card-title">
-              <span>📷 Фотофиксация объекта (Стена & Узлы)</span>
+              <span>📷 Фото стены</span>
               <span id="badgePhotos" class="badge badge-blue">0 фото</span>
             </div>
-            <button class="btn" style="background:#8a5a2b; color:#fff; height:48px; font-size:14px; margin-bottom:10px;" onclick="openViz()">🎨 Примерка панелей на фото комнаты</button>
-
-            <div style="font-size:11px; color:#c9ad8f; margin-bottom:8px;">
-              Прикрепите фото стены, выводов розеток и сложных углов для мастера цеха:
+            <div style="font-size:12px; color:#c9ad8f; margin-bottom:8px;">
+              Сфотографируйте стену целиком, розетки и сложные углы — фото уйдут в цех.
             </div>
 
             <div style="display:flex; gap:8px;">
@@ -959,6 +960,7 @@
 
             <!-- Сетка превью фотографий -->
             <div id="boxPhotosGallery" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:8px; margin-top:10px;"></div>
+            <button class="btn" style="background:#8a5a2b; color:#fff; height:48px; font-size:14px; margin-top:12px;" onclick="openViz()">🎨 Примерка панелей на фото (если клиент хочет посмотреть)</button>
           </div>
 
         </div>
@@ -1063,7 +1065,7 @@
               <div class="col">
                 <label>Вид отделки</label>
                 <select id="inFinish" onchange="onFinishChanged()">
-                  <option value="Ткань рогожка 1й сорт">Ткань рогожка (1й сорт)</option>
+                  <option value="Ткань рогожка 1й сорт">Рогожка 1 сорт</option>
                   <option value="Ткань велюр Premium">Ткань велюр Premium</option>
                   <option value="Эко-кожа">Эко-кожа</option>
                   <option value="Рейки 30×10 мм">Рейки (30×10 мм)</option>
@@ -1096,7 +1098,7 @@
           <div style="display:flex; flex-direction:column; gap:12px;">
           <div class="card">
             <div class="card-title">
-              <span>📐 Инженерный чертеж раскладки со стыками</span>
+              <span>📐 Чертёж стены</span>
               <span id="badgePanelsCount" class="badge badge-blue">8 деталей</span>
             </div>
 
@@ -1105,9 +1107,10 @@
               <!-- Динамические кнопки переключения чертежей -->
             </div>
 
-            <div class="canvas-wrapper">
+            <div class="canvas-wrapper" onclick="openDrawingModal()" style="cursor:zoom-in;">
               <div id="svgBox" style="width:100%;"></div>
             </div>
+            <div style="text-align:center; font-size:12px; color:#ffcf98; margin-top:6px; font-weight:700;">👆 Нажмите на чертёж, чтобы открыть крупно</div>
 
             <!-- Сигналы коллизий -->
             <div id="boxSeamCollision" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:11px; font-weight:700;">
@@ -1121,21 +1124,16 @@
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:#c9ad8f;">
-              <span>🔴 Выпилы розеток | 🚪 Проёмы и вырезы</span>
-              <span>Левая сторона — 90°, правая — клин</span>
+              <span>🔴 розетки · 🚪 двери и окна</span>
+              <span>правая панель — с запасом</span>
             </div>
           </div>
 
           <div class="card fold folded">
             <div class="card-title" onclick="toggleFold(event,this)">
-              <span>🪵 Спецификация раскроя деталей</span>
+              <span>🪵 Список деталей (для цеха)</span>
               <div style="display:flex; gap:6px;">
-                <button class="btn btn-amber" style="width:auto; height:30px; padding:0 10px; font-size:11px;" onclick="openLabelsModal()">
-                  🏷️ Бирки на детали
-                </button>
-                <button class="btn btn-dark" style="width:auto; height:30px; padding:0 10px; font-size:11px;" onclick="downloadCuttingCSV()">
-                  📥 Excel (.CSV)
-                </button>
+                
               </div>
             </div>
 
@@ -1168,18 +1166,16 @@
 
           <div class="card" style="border-color:#ffcf98;">
             <div class="card-title">
-              <span>💰 Расчетная смета клиенту</span>
-              <span class="badge badge-green" id="badgePriceFormula">100% формула цеха</span>
+              <span>💰 Смета для клиента</span>
+              <span class="badge badge-amber" id="badgePriceFormula">цены примерные</span>
             </div>
 
             <!-- Фиксация цены договора и почта цеха -->
             <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:8px; border:1px solid #4d3219; margin-bottom:8px; font-size:11px;">
               <div id="boxPriceLockStatus" style="display:flex; align-items:center; gap:6px;">
-                <span id="lblPriceLockBadge" class="badge badge-green">✓ Расчет по тарифам</span>
+                <span id="lblPriceLockBadge" class="badge badge-amber">Цены примерные — ждём прайс</span>
               </div>
-              <button onclick="editFactorySettings()" class="btn btn-dark" style="width:auto; height:28px; padding:0 8px; font-size:10px;">
-                ⚙️ Почта цеха: <span id="lblFactoryEmailDisplay">не указана</span>
-              </button>
+              
             </div>
 
             <!-- Итоговая сумма и площадь -->
@@ -1217,7 +1213,7 @@
             <!-- Позиционная расшифровка сметы -->
             <div style="margin-top:10px;">
               <div style="font-size:11px; color:#c9ad8f; font-weight:700; margin-bottom:6px; text-transform:uppercase;">
-                Позиционная расшифровка сметы:
+                Из чего складывается цена:
               </div>
               <div id="lstPriceBreakdown" style="display:flex; flex-direction:column; gap:5px; font-size:11px;"></div>
             </div>
@@ -1225,24 +1221,25 @@
             <!-- Кнопки отправки и печати -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px; border-top:1px solid #4d3219; padding-top:12px;">
               <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #e08a2a; color:#ffbc00;">Подписи клиента нет</div>
-              <button class="btn" style="background:#8a5a2b; color:#fff; height:48px; font-size:14px;" onclick="openViz()">
-                🎨 Примерка панелей на фото комнаты
-              </button>
-              <button class="btn" id="btnSign" style="background:#6610f2; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
+              <button class="btn" id="btnSign" style="background:#d06d16; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
                 ✍️ Подпись клиента
               </button>
               <button class="btn btn-dark" id="btnClientCopy" style="height:48px; font-size:14px; display:none;" onclick="sendClientCopy()">
                 📤 Отправить копию клиенту
               </button>
-              <button class="btn btn-primary" style="height:52px; font-size:15px;" onclick="downloadOrderPDF()">
-                📄 PDF наряда для цеха
-              </button>
               <button class="btn btn-success" style="height:52px; font-size:15px;" onclick="sendToMessengerMax()">
-                💬 Отправить в MAX
+                💬 Отправить в цех (MAX)
+              </button>
+              <button class="btn btn-primary" style="height:48px; font-size:14px;" onclick="downloadOrderPDF()">
+                📄 Скачать PDF наряда
+              </button>
+              <button class="btn" style="background:#8a5a2b; color:#fff; height:44px; font-size:13px;" onclick="openViz()">
+                🎨 Примерка панелей на фото
               </button>
               <details class="adv">
-                <summary>Ещё: бланк на экране, бирки, почта, Excel</summary>
+                <summary>Ещё: бланк, бирки, почта цеха, Excel</summary>
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                  <button onclick="editFactorySettings()" class="btn btn-dark">⚙️ Почта цеха: <span id="lblFactoryEmailDisplay">не указана</span></button>
                   <button class="btn btn-dark" onclick="openOrderModal()">📋 Открыть бланк наряда на экране</button>
                   <button class="btn btn-dark" onclick="openLabelsModal()">🏷️ Бирки на детали</button>
                   <button class="btn btn-dark" onclick="sendToFactoryEmail()">📧 Отправить на почту цеха</button>
@@ -1706,7 +1703,7 @@
       floor: 3,
       install: "Да + Доставка",
       notes: "",
-      discountPercent: 5.66,
+      discountPercent: 0,
       customPrice: 181292,
       isPriceLocked: false,
       savedPrice: null,
@@ -1772,7 +1769,7 @@
         floor: 3,
         install: "Да + Доставка",
         notes: "Прямая стена с перепадом клина",
-        discountPercent: 5.66,
+        discountPercent: 0,
         customPrice: 181292,
         isPriceLocked: true,
         savedPrice: 181292,
@@ -2005,7 +2002,7 @@
         pill.innerHTML = `
           <div class="wall-tab-name">
             <span>${isActive ? '📌' : '🧱'} ${escapeHTML(wName)}</span>
-            <span class="wall-tab-dim">${(w.cleanW/1000).toFixed(2)}×${(w.cleanH/1000).toFixed(2)}м</span>
+            <span class="wall-tab-dim">${wallMissingFields(w).length ? "не замерена" : (w.cleanW/1000).toFixed(2) + "×" + (w.cleanH/1000).toFixed(2) + "м"}</span>
             <button class="wall-tab-btn-ren" onclick="renameWall(${idx})" style="background:none; border:none; color:#ffcf98; cursor:pointer; font-size:11px; padding:0 2px;" title="Переименовать стену">✏️</button>
           </div>
           ${appState.walls.length > 1 ? `
@@ -2031,7 +2028,7 @@
       if (summaryBadge) {
         const count = appState.walls.length;
         const suffix = count === 1 ? 'стена' : (count < 5 ? 'стены' : 'стен');
-        summaryBadge.innerText = `${count} ${suffix} • ${totalArea.toFixed(1)} м²`;
+        summaryBadge.innerText = appState.walls.some(w => wallMissingFields(w).length) ? `${count} ${suffix} • впишите размеры` : `${count} ${suffix} • ${totalArea.toFixed(1)} м²`;
       }
     }
 
@@ -2205,7 +2202,7 @@
         if (lbl) {
           lbl.innerText = "● Сохранено";
           lbl.style.color = "#34d399";
-          setTimeout(() => { lbl.innerText = "● Память активна"; }, 1200);
+          setTimeout(() => { lbl.innerText = "● Заказ сохранён"; }, 1200);
         }
       } catch (e) {
         const lbl = document.getElementById('lblAutoSaveStatus');
@@ -2255,7 +2252,7 @@
       if (el) el.innerText = getOrdersDB().length;
     }
 
-    function createNewOrder() {
+    function createNewOrder(silent) {
       const newNum = "Заказ №" + (Math.floor(Math.random() * 800) + 110);
       const today = new Date().toISOString().split('T')[0];
       const wall = blankWallDims(createDefaultWall('w_' + Date.now(), 'Стена 1', 2600));
@@ -2282,7 +2279,13 @@
       updatePriceLockUI();
       goToStep(1);
       closeOrdersModal();
-      showToast(`Создан чистый бланк: ${newNum}`);
+      try {
+        document.getElementById('lblCleanDim').innerText = 'впишите размеры';
+        document.getElementById('lblKlinAdvice').innerText = '';
+        document.getElementById('badgeOrder').innerText = newNum;
+        const bc = document.getElementById('badgeCurvature'); if (bc) { bc.className = 'badge badge-blue'; bc.innerText = 'ждём замер'; }
+      } catch (e) {}
+      if (!silent) showToast(`Создан чистый бланк: ${newNum}`);
     }
 
     function openOrdersModal() {
@@ -2687,7 +2690,7 @@
           <button onclick="unlockPriceRecalculate()" style="background:none; border:none; color:#ffcf98; cursor:pointer; font-size:10px; text-decoration:underline;" title="Пересчитать по актуальным тарифам">Пересчитать</button>
         `;
       } else {
-        box.innerHTML = `<span id="lblPriceLockBadge" class="badge badge-green">✓ Расчет по актуальным тарифам</span>`;
+        box.innerHTML = `<span id="lblPriceLockBadge" class="badge badge-amber">Цены примерные — ждём прайс</span>`;
       }
     }
 
@@ -2814,7 +2817,7 @@
       const bAdvice = document.getElementById('lblKlinAdvice');
 
       const maxDev = Math.max(Math.abs(appState.devLeft), Math.abs(appState.devCenter), Math.abs(appState.devRight));
-      let devText = maxDev > 2 ? ` • Пузо стены +${maxDev} мм (требуются подкладки под каркас)` : '';
+      let devText = maxDev > 2 ? ` Горб ${maxDev} мм — нужны подкладки под каркас.` : '';
 
       const hs = [appState.hLeft, appState.hCenter, appState.hRight].filter(v => v);
       const diffH = Math.max(...hs) - Math.min(...hs);
@@ -2824,12 +2827,12 @@
         bAdvice.innerHTML = `<span style="color:#f87171;">⚠️ ${diffW > SUSPECT_DIFF ? `Ширины отличаются на ${diffW} мм` : `Высоты отличаются на ${diffH} мм`} — похоже на опечатку. Перемерьте или исправьте цифру.</span>`;
       } else if (diffW > 0) {
         bBadge.className = "badge badge-amber";
-        bBadge.innerText = `Клин стены: -${diffW} мм`;
-        bAdvice.innerText = `Левая стена 90° (база). Правый добор заказывается с запасом +${diffW} мм под прирезку на объекте!${devText}`;
+        bBadge.innerText = `Стена кривая на ${diffW} мм`;
+        bAdvice.innerText = `Ширина гуляет на ${diffW} мм — цех учтёт, правую панель подрежете на месте.${devText}`;
       } else {
         bBadge.className = "badge badge-green";
         bBadge.innerText = "Стена ровная";
-        bAdvice.innerText = `Стена прямоугольная. Правый добор прямой.${devText}`;
+        bAdvice.innerText = `Стена ровная, всё в порядке.${devText}`;
       }
 
       autoDivideWall();
@@ -3060,7 +3063,7 @@
             <b style="color:${costLogistics > 0 ? '#ffcf98' : '#9a7a5c'};">${costLogistics.toLocaleString('ru-RU')} ₽ (единожды)</b>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-            <span>🛠️ Профессиональный монтаж (${appState.install === 'Да + Доставка' ? 'под ключ (' + totalNetArea.toFixed(2) + ' м²)' : 'не включен'})</span>
+            <span>🛠️ Монтаж (${appState.install === 'Да + Доставка' ? totalNetArea.toFixed(2) + ' м²' : 'не включён'})</span>
             <b style="color:${costInstall > 0 ? '#ffcf98' : '#9a7a5c'};">${costInstall > 0 ? costInstall.toLocaleString('ru-RU') + ' ₽' : '0 ₽'}</b>
           </div>
           ${discountAmount > 0 ? `
@@ -3538,9 +3541,8 @@
 
         d.innerHTML = `
           <div>
-            <b>${panelDesc}</b>: В:${s.localH}мм (от низа дет.), П:${s.localX}мм
-            <span style="color:${s.type.includes('Выключатель') ? '#a78bfa' : '#ffcf98'}; font-weight:bold;">[${escapeHTML(s.type)}]</span>
-            <span style="color:#c9ad8f; font-size:10px;">(${s.refEdge === 'left' ? 'от левого' : 'от правого'}: ${s.refDist} мм, Y=${s.yWall})</span>
+            <span style="color:${s.type.includes('Выключатель') ? '#a78bfa' : '#ffcf98'}; font-weight:bold;">${escapeHTML(s.type)}</span>: ${s.refDist} мм от ${s.refEdge === 'left' ? 'левого' : 'правого'} угла, ${s.yWall} мм от пола
+            <span style="color:#c9ad8f; font-size:10px;">(${panelDesc})</span>
             ${isNearSeam ? '<span style="color:#f87171; font-weight:bold; margin-left:4px;">⚠️ шов &lt;40мм!</span>' : ''}
             ${isHitOp ? '<span style="color:#ef4444; font-weight:bold; margin-left:4px;">🚨 в проёме!</span>' : ''}
           </div>
@@ -5258,6 +5260,9 @@
         const draft = localStorage.getItem(DRAFT_KEY);
         if (draft) {
           appState = JSON.parse(draft);
+        } else {
+          createNewOrder(true);
+          return;
         }
       } catch (e) {}
 
