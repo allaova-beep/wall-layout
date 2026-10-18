@@ -221,6 +221,9 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    /* Светлая тема для работы на солнце: инверсия тёмной схемы, фото остаются как есть */
+    html.theme-light { filter: invert(1) hue-rotate(180deg); background:#05080f; }
+    html.theme-light img, html.theme-light video, html.theme-light .no-invert { filter: invert(1) hue-rotate(180deg); }
     #fabDrawing { position:fixed; right:16px; bottom:20px; z-index:901; height:48px; padding:0 18px; border-radius:24px; border:1px solid #f59e0b;
       background:#d97706; color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.45); cursor:pointer; }
     body.view-all-sections #fabDrawing { display:none; }
@@ -356,14 +359,15 @@
         <button id="btnToggleViewMode" onclick="toggleViewAllMode()" class="btn btn-dark" style="width:auto; height:32px; padding:0 10px; font-size:11px;" title="Показать все карточки сразу">
           🖥️ Все блоки
         </button>
+        <button onclick="toggleTheme()" id="btnTheme" class="btn btn-dark" style="width:auto; height:32px; padding:0 10px; font-size:13px; flex:0 0 auto !important;" title="Светлая / тёмная тема">☀️</button>
         <button onclick="createNewOrder()" class="btn btn-primary" style="width:auto; height:32px; padding:0 12px; font-size:11px;">
-          + Новый замер
+          + Новый
         </button>
         <button onclick="saveCurrentOrderToDB()" class="btn btn-success" style="width:auto; height:32px; padding:0 12px; font-size:11px;">
-          💾 Сохранить в базу
+          💾 Сохранить
         </button>
         <button onclick="openOrdersModal()" class="btn btn-dark" style="width:auto; height:32px; padding:0 12px; font-size:11px;">
-          📁 Мои замеры (<span id="cntOrdersBadge">3</span>)
+          📁 Замеры (<span id="cntOrdersBadge">3</span>)
         </button>
       </div>
     </header>
@@ -4110,6 +4114,20 @@
     // =========================================================================
     let currentStep = 1;
     let isViewAllMode = false;
+
+    function applyTheme(light) {
+      document.documentElement.classList.toggle('theme-light', light);
+      const b = document.getElementById('btnTheme');
+      if (b) b.textContent = light ? '🌙' : '☀️';
+    }
+    function toggleTheme() {
+      const light = !document.documentElement.classList.contains('theme-light');
+      applyTheme(light);
+      try { localStorage.setItem('t1000_theme', light ? 'light' : 'dark'); } catch (e) {}
+      showToast(light ? 'Светлая тема — для солнца' : 'Тёмная тема', light ? '☀️' : '🌙');
+    }
+    try { if (localStorage.getItem('t1000_theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) {}
+    window.addEventListener('DOMContentLoaded', () => applyTheme(document.documentElement.classList.contains('theme-light')));
 
     let drawingScale = 1;
     function openDrawingModal() {
