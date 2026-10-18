@@ -770,19 +770,19 @@
             <div class="row">
               <div class="col">
                 <label id="lblOpenDist">Отступ от угла (X, мм)</label>
-                <input id="inOpenDist" type="number" inputmode="numeric" value="1200" placeholder="1200">
+                <input id="inOpenDist" type="number" inputmode="numeric" value="" placeholder="1200">
               </div>
               <div class="col">
                 <label>Ширина проема (W, мм)</label>
-                <input id="inOpenW" type="number" inputmode="numeric" value="950" placeholder="950">
+                <input id="inOpenW" type="number" inputmode="numeric" value="" placeholder="950">
               </div>
               <div class="col">
                 <label>Высота проема (H, мм)</label>
-                <input id="inOpenH" type="number" inputmode="numeric" value="2097" placeholder="2097">
+                <input id="inOpenH" type="number" inputmode="numeric" value="" placeholder="2097">
               </div>
               <div class="col" id="boxOpenFloorY" style="display:none;">
                 <label>От пола (Y, мм)</label>
-                <input id="inOpenFloorY" type="number" inputmode="numeric" value="850" placeholder="850">
+                <input id="inOpenFloorY" type="number" inputmode="numeric" value="" placeholder="850">
               </div>
             </div>
 
@@ -807,14 +807,14 @@
               </div>
               <div class="col">
                 <label id="lblSockDist">От угла до центра розетки (мм)</label>
-                <input id="inSockDist" type="number" inputmode="numeric" value="470" placeholder="напр. 470">
+                <input id="inSockDist" type="number" inputmode="numeric" value="" placeholder="напр. 470">
               </div>
             </div>
 
             <div class="row">
               <div class="col">
                 <label>От чистого пола (Y, мм)</label>
-                <input id="inSockY" type="number" inputmode="numeric" value="550" placeholder="550">
+                <input id="inSockY" type="number" inputmode="numeric" value="" placeholder="550">
               </div>
               <div class="col">
                 <label>Тип прибора (кабель)</label>
@@ -1433,6 +1433,17 @@
     }
 
     // Проверка, что все стены заказа замерены (до отправки в цех)
+    const SUSPECT_DIFF = 150; // мм: больше — почти наверняка опечатка
+    function wallSuspicious(w) {
+      const ws = [w.wTop, w.wMid, w.wBot].map(Number).filter(v => v > 0);
+      const hs = [w.hLeft, w.hCenter, w.hRight].map(Number).filter(v => v > 0);
+      const dW = ws.length ? Math.max(...ws) - Math.min(...ws) : 0;
+      const dH = hs.length ? Math.max(...hs) - Math.min(...hs) : 0;
+      if (dW > SUSPECT_DIFF) return `ширины отличаются на ${dW} мм`;
+      if (dH > SUSPECT_DIFF) return `высоты отличаются на ${dH} мм`;
+      return '';
+    }
+
     function wallMissingFields(w) {
       const need = [['wTop','ширина верх'],['wMid','ширина центр'],['wBot','ширина низ'],['hLeft','высота слева']];
       if ((w.measureMode || 9) === 9) need.push(['hCenter','высота центр'], ['hRight','высота справа']);
@@ -1449,6 +1460,12 @@
           if (i !== appState.activeWallIdx) switchActiveWall(i);
           goToStep(1);
           alert(`«${w.name || ('Стена ' + (i + 1))}»: не заполнено — ${miss.join(', ')}.\nНаряд не отправлен.`);
+          return false;
+        }
+        const sus = wallSuspicious(w);
+        if (sus && !confirm(`«${w.name || ('Стена ' + (i + 1))}»: ${sus} — похоже на опечатку.\nВсё равно продолжить?`)) {
+          if (i !== appState.activeWallIdx) switchActiveWall(i);
+          goToStep(1);
           return false;
         }
       }
@@ -2476,6 +2493,7 @@
       renderOpeningsList();
       autoDivideWall();
       showToast(`Добавлен: ${typeName} ${w}×${h} мм`);
+      ['inOpenDist','inOpenW','inOpenH'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     }
 
     function removeWallOpening(idx) {
@@ -2714,7 +2732,13 @@
       const maxDev = Math.max(Math.abs(appState.devLeft), Math.abs(appState.devCenter), Math.abs(appState.devRight));
       let devText = maxDev > 2 ? ` • Пузо стены +${maxDev} мм (требуются подкладки под каркас)` : '';
 
-      if (diffW > 0) {
+      const hs = [appState.hLeft, appState.hCenter, appState.hRight].filter(v => v);
+      const diffH = Math.max(...hs) - Math.min(...hs);
+      if (diffW > SUSPECT_DIFF || diffH > SUSPECT_DIFF) {
+        bBadge.className = "badge badge-red";
+        bBadge.innerText = "Проверьте замер!";
+        bAdvice.innerHTML = `<span style="color:#f87171;">⚠️ ${diffW > SUSPECT_DIFF ? `Ширины отличаются на ${diffW} мм` : `Высоты отличаются на ${diffH} мм`} — похоже на опечатку. Перемерьте или исправьте цифру.</span>`;
+      } else if (diffW > 0) {
         bBadge.className = "badge badge-amber";
         bBadge.innerText = `Клин стены: -${diffW} мм`;
         bAdvice.innerText = `Левая стена 90° (база). Правый добор заказывается с запасом +${diffW} мм под прирезку на объекте!${devText}`;
@@ -2725,6 +2749,7 @@
       }
 
       autoDivideWall();
+      try { syncAppStateToCurWall(); renderWallsBar(); } catch (e) {}
     }
 
     // =========================================================================
@@ -3244,6 +3269,8 @@
         localX: null,
         localH: null
       });
+      // расстояние очищаем (у следующей розетки оно другое), высоту оставляем — часто одинаковая
+      document.getElementById('inSockDist').value = '';
 
       recalculateSockets();
       calculateEstimate();
@@ -4376,6 +4403,27 @@
       document.getElementById('modalDrawing').classList.remove('open');
       document.body.style.overflow = '';
     }
+
+    // Ввод замера «по Enter»: курсор сам переходит к следующей точке
+    const MEASURE_ORDER = ['inWTop', 'inWMid', 'inWBot', 'inHLeft', 'inHCenter', 'inHRight'];
+    function setupEnterNavigation() {
+      const chains = [MEASURE_ORDER, ['inOpenDist', 'inOpenW', 'inOpenH', 'inOpenFloorY'], ['inSockDist', 'inSockY']];
+      chains.forEach(chain => chain.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('enterkeyhint', idx < chain.length - 1 ? 'next' : 'done');
+        el.addEventListener('keydown', e => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          for (let n = idx + 1; n < chain.length; n++) {
+            const nx = document.getElementById(chain[n]);
+            if (nx && nx.offsetParent !== null) { nx.focus(); nx.select && nx.select(); return; }
+          }
+          el.blur();
+        });
+      }));
+    }
+    window.addEventListener('DOMContentLoaded', setupEnterNavigation);
 
     function toggleFold(ev, titleEl) {
       if (ev && ev.target.closest('button')) return;
