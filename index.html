@@ -221,6 +221,14 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    @media print {
+      body.print-labels > *:not(#modalLabels) { display:none !important; }
+      body.print-labels #modalLabels { display:block !important; position:static !important; background:#fff !important; padding:0 !important; }
+      body.print-labels #modalLabels .modal-sheet { max-height:none !important; overflow:visible !important; border:none !important; padding:0 !important; background:#fff !important; max-width:none !important; width:100% !important; }
+      body.print-labels #modalLabels .modal-sheet > *:not(#labelsPrintSheet) { display:none !important; }
+      body.print-labels .label-sticker-card { break-inside:avoid; page-break-inside:avoid; }
+    }
+
     #modalSign { display:none; position:fixed; inset:0; z-index:2100; background:#f1f5f9; color:#0f172a; flex-direction:column; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); gap:8px; }
     #modalSign.open { display:flex; }
     #modalSign .sg-head { display:flex; justify-content:space-between; align-items:center; }
@@ -839,6 +847,11 @@
             <button class="btn btn-primary" onclick="addSmartSocket()">+ Рассчитать и посадить на панель</button>
 
             <div id="lstSockets" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
+            <div id="boxSeamStep2" style="display:none; margin-top:8px; padding:10px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:12px; font-weight:700;">
+              🚨 Есть розетки ближе 40 мм к шву панелей.
+              <button class="btn btn-amber" style="margin-top:8px; height:46px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
+            </div>
+            <div id="boxShiftStep2" style="display:none; margin-top:8px; font-size:12px; color:#94a3b8;"></div>
           </div>
 
         </div>
@@ -1036,8 +1049,10 @@
 
             <!-- Сигналы коллизий -->
             <div id="boxSeamCollision" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:11px; font-weight:700;">
-              🚨 Внимание цеха: расстояние от подрозетника до стыка панелей менее 40 мм! Сместите раскладку.
+              🚨 Выпил под розетку ближе 40 мм к шву панелей.
+              <button class="btn btn-amber" style="margin-top:8px; height:44px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
             </div>
+            <div id="boxShiftInfo" style="display:none; margin-top:8px; font-size:11px; color:#94a3b8;"></div>
 
             <div id="boxOpeningCollision" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(239,68,68,0.25); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:11px; font-weight:700;">
               🚨 Ошибка коллизии: розетка попадает внутрь дверного или оконного проёма!
@@ -1151,24 +1166,21 @@
               <button class="btn" id="btnSign" style="background:#7c3aed; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
                 ✍️ Подпись клиента
               </button>
-              <button class="btn btn-amber" onclick="openOrderModal()">
-                📄 Открыть производственный наряд (Бланк)
+              <button class="btn btn-primary" style="height:52px; font-size:15px;" onclick="downloadOrderPDF()">
+                📄 PDF наряда для цеха
               </button>
-              <button class="btn btn-amber" onclick="openLabelsModal()">
-                🏷️ Напечатать бирки на детали (ЧПУ/Сборка)
+              <button class="btn btn-success" style="height:52px; font-size:15px;" onclick="sendToMessengerMax()">
+                💬 Отправить в MAX
               </button>
-              <button class="btn btn-primary" onclick="downloadOrderPDF()">
-                📥 Скачать PDF наряда (1 клик)
-              </button>
-              <button class="btn btn-success" onclick="sendToMessengerMax()">
-                💬 Отправить в мессенджер MAX
-              </button>
-              <button class="btn btn-dark" onclick="sendToFactoryEmail()">
-                📧 Отправить на Почту цеха
-              </button>
-              <button class="btn btn-dark" onclick="downloadCuttingCSV()">
-                📊 Экспорт раскроя в Excel (.CSV)
-              </button>
+              <details class="adv">
+                <summary>Ещё: бланк на экране, бирки, почта, Excel</summary>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                  <button class="btn btn-dark" onclick="openOrderModal()">📋 Открыть бланк наряда на экране</button>
+                  <button class="btn btn-dark" onclick="openLabelsModal()">🏷️ Бирки на детали</button>
+                  <button class="btn btn-dark" onclick="sendToFactoryEmail()">📧 Отправить на почту цеха</button>
+                  <button class="btn btn-dark" onclick="downloadCuttingCSV()">📊 Раскрой в Excel (.CSV)</button>
+                </div>
+              </details>
             </div>
           </div>
 
@@ -1581,6 +1593,7 @@
       appState.sockets = w.sockets;
       appState.photos = w.photos;
       appState.panels = w.panels;
+      appState.layoutShift = w.layoutShift || 0;
     }
 
     function syncAppStateToCurWall() {
@@ -1611,6 +1624,7 @@
       w.sockets = appState.sockets;
       w.photos = appState.photos;
       w.panels = appState.panels;
+      w.layoutShift = appState.layoutShift || 0;
     }
 
     // Текущее состояние приложения
@@ -2323,7 +2337,7 @@
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `База_замеров_ПанельПро_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `База_замеров_Т-1000_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -3147,6 +3161,14 @@
 
       let curX = 0;
 
+      // Сдвиг раскладки: первая панель у левой стены делается узкой, чтобы швы ушли от розеток
+      const shift = Math.round(appState.layoutShift || 0);
+      if (shift > 0 && shift < cleanW && (!openings.length || openings[0].xWall >= shift)) {
+        panels.push({ id: pid++, startX: 0, endX: shift, w: shift, h: mainH, yFloor: 0,
+          type: 'Пристенок (сдвиг)', isDobor: false, isDoorOverhead: false });
+        curX = shift;
+      }
+
       for (let opIdx = 0; opIdx < openings.length; opIdx++) {
         const op = openings[opIdx];
         const ox1 = Math.max(0, Math.min(cleanW, op.xWall));
@@ -3309,6 +3331,52 @@
       return (s.localX - half) < SEAM_MIN || (p.w - s.localX - half) < SEAM_MIN;
     }
 
+    function countSeamConflicts() {
+      return (appState.sockets || []).filter(s => {
+        if (s.inOpening) return false;
+        const p = (appState.panels || []).find(x => x.id === s.panelId);
+        return sockNearSeam(s, p);
+      }).length;
+    }
+
+    // Подбор сдвига раскладки, при котором все выпилы отходят от швов на 40+ мм
+    function autoShiftLayout() {
+      const stdW = appState.stdPanelW || 607;
+      const prev = appState.layoutShift || 0;
+      let best = null;
+      const candidates = [0];
+      for (let x = 150; x <= stdW - 1; x += 5) candidates.push(x);
+      const origRender = renderSvgBlueprint, origTables = renderTablesAndStock, origSave = saveActiveDraft;
+      renderSvgBlueprint = () => {}; renderTablesAndStock = () => {}; saveActiveDraft = () => {};
+      try {
+        for (const sh of candidates) {
+          appState.layoutShift = sh;
+          autoDivideWall();
+          const c = countSeamConflicts();
+          if (!best || c < best.c) best = { sh, c };
+          if (c === 0) break;
+        }
+      } finally {
+        renderSvgBlueprint = origRender; renderTablesAndStock = origTables; saveActiveDraft = origSave;
+      }
+      appState.layoutShift = best ? best.sh : prev;
+      autoDivideWall();
+      syncAppStateToCurWall();
+      saveActiveDraft();
+      if (best && best.c === 0) {
+        showToast(best.sh ? `Раскладка сдвинута: первая панель ${best.sh} мм — все розетки дальше 40 мм от швов` : 'Сдвиг не нужен — розетки не на швах', '✓', '#10b981');
+      } else {
+        alert(`Не удалось увести все розетки от швов (осталось ${best ? best.c : '?'}). Проверьте расположение розеток или согласуйте с цехом.`);
+      }
+    }
+
+    function resetLayoutShift() {
+      appState.layoutShift = 0;
+      autoDivideWall();
+      syncAppStateToCurWall();
+      showToast('Сдвиг раскладки сброшен');
+    }
+
     function recalculateSockets() {
       let seamCollision = false;
       let openingCollision = false;
@@ -3371,6 +3439,14 @@
       });
 
       document.getElementById('boxSeamCollision').style.display = seamCollision ? 'block' : 'none';
+      const b2 = document.getElementById('boxSeamStep2');
+      if (b2) b2.style.display = seamCollision ? 'block' : 'none';
+      const bs = document.getElementById('boxShiftStep2');
+      if (bs) {
+        const sh = appState.layoutShift || 0;
+        bs.style.display = sh ? 'block' : 'none';
+        bs.innerHTML = sh ? `↔ Раскладка сдвинута: у левой стены узкая панель ${sh} мм. <a href="#" style="color:#60a5fa;" onclick="resetLayoutShift(); return false;">Сбросить</a>` : '';
+      }
       document.getElementById('boxOpeningCollision').style.display = openingCollision ? 'block' : 'none';
 
       const lst = document.getElementById('lstSockets');
@@ -4220,7 +4296,7 @@
           card.style.cssText = "background:#0c1527; border:2px dashed #3b82f6; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; font-size:11px; page-break-inside:avoid; break-inside:avoid;";
           card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #202d44; padding-bottom:4px;">
-              <div style="font-weight:900; font-size:11px; color:#60a5fa;">🏭 ПАНЕЛЬ-ПРО • ${escapeHTML(appState.orderNum)}</div>
+              <div style="font-weight:900; font-size:11px; color:#60a5fa;">🏭 Т-1000 • ${escapeHTML(appState.orderNum)}</div>
               <div style="font-size:10px; color:#94a3b8;">${escapeHTML(appState.orderDate)}</div>
             </div>
 
@@ -4278,47 +4354,21 @@
     }
 
     function downloadLabelsPDF() {
-      showToast("Формирование PDF наклеек...", "⏳", "#3b82f6");
       openLabelsModal();
-
-      const element = document.getElementById('labelsPrintSheet');
-      const originalBg = element.style.background;
-      const originalBorder = element.style.border;
-
-      element.style.background = "#ffffff";
-      element.style.border = "none";
-
-      const safeOrderName = (appState.orderNum || 'Заказ').replace(/\s+/g, '_');
-      const filename = `Бирки_ЧПУ_${safeOrderName}.pdf`;
-
-      const opt = {
-        margin: [6, 6, 6, 6],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      const sheet = document.getElementById('labelsPrintSheet');
+      sheet.classList.add('pdf-light');
+      document.body.classList.add('print-labels');
+      const prevTitle = document.title;
+      document.title = `Бирки_${(appState.orderNum || 'Заказ').replace(/\s+/g, '_')}`;
+      const cleanup = () => {
+        sheet.classList.remove('pdf-light');
+        document.body.classList.remove('print-labels');
+        document.title = prevTitle;
+        window.removeEventListener('afterprint', cleanup);
       };
-
-      if (typeof html2pdf !== 'undefined') {
-        html2pdf().set(opt).from(element).save().then(() => {
-          element.style.background = originalBg;
-          element.style.border = originalBorder;
-          showToast(`PDF бирок ${safeOrderName} скачан в память!`, "✓", "#10b981");
-        }).catch(err => {
-          element.style.background = originalBg;
-          element.style.border = originalBorder;
-          window.print();
-        });
-      } else {
-        element.style.background = originalBg;
-        element.style.border = originalBorder;
-        window.print();
-      }
+      window.addEventListener('afterprint', cleanup);
+      showToast('В окне печати выберите «Сохранить как PDF»', '🏷️', '#3b82f6');
+      setTimeout(() => { window.print(); setTimeout(cleanup, 1500); }, 300);
     }
 
     // PDF наряда через системную печать браузера: «Сохранить как PDF».
