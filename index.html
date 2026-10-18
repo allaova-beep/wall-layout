@@ -5285,11 +5285,37 @@
       updateHeaderSummary();
       updatePriceLockUI();
       goToStep(appState.uiStep || 1);
+      restoreRawInputs();
       window.__draftReady = true;
     };
 
+    // Полузаполненные поля (замер ещё не весь введён, расчёт не запускался) тоже переживают вылет
+    const RAW_KEY = 'panelpro_raw_inputs_v1';
+    let rawTimer = null;
+    function saveRawInputs() {
+      try {
+        const vals = {};
+        document.querySelectorAll('#stepSection1 input, #stepSection1 select, #stepSection2 input, #stepSection2 select, #stepSection4 input, #stepSection4 select').forEach(el => {
+          if (!el.id || el.type === 'file' || el.type === 'checkbox' || el.type === 'radio' || el.disabled) return;
+          vals[el.id] = el.value;
+        });
+        localStorage.setItem(RAW_KEY, JSON.stringify({ orderId: appState && appState.id, vals }));
+      } catch (e) {}
+    }
+    function restoreRawInputs() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(RAW_KEY) || 'null');
+        if (!raw || !appState || raw.orderId !== appState.id) return;
+        Object.keys(raw.vals).forEach(id => {
+          const el = document.getElementById(id);
+          if (el && el.value === '' && raw.vals[id] !== '') el.value = raw.vals[id];
+        });
+      } catch (e) {}
+    }
+    document.addEventListener('input', () => { clearTimeout(rawTimer); rawTimer = setTimeout(saveRawInputs, 250); }, true);
+
     // Свернули приложение / переключились на другое / вкладку выгрузила система — сохраняем на выходе
-    function flushDraftNow() { try { if (window.__draftReady) saveActiveDraft(); } catch (e) {} }
+    function flushDraftNow() { try { if (window.__draftReady) { saveActiveDraft(); saveRawInputs(); } } catch (e) {} }
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraftNow(); });
     window.addEventListener('pagehide', flushDraftNow);
     document.addEventListener('freeze', flushDraftNow);
