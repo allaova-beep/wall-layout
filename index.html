@@ -221,6 +221,17 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    #fabDrawing { position:fixed; right:16px; bottom:20px; z-index:901; height:48px; padding:0 18px; border-radius:24px; border:1px solid #f59e0b;
+      background:#d97706; color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.45); cursor:pointer; }
+    body.view-all-sections #fabDrawing { display:none; }
+    #modalDrawing { display:none; position:fixed; inset:0; z-index:2000; background:#05080f; flex-direction:column; }
+    #modalDrawing.open { display:flex; }
+    #modalDrawing .md-head { display:flex; gap:6px; align-items:center; padding:10px 10px calc(10px); border-bottom:1px solid #1e293b; }
+    #modalDrawing .md-head .btn { width:auto; min-width:44px; height:44px; padding:0 12px; font-size:18px; }
+    #mdTitle { flex:1; font-weight:800; font-size:14px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #mdInfo { padding:6px 12px; font-size:12px; color:#94a3b8; }
+    #mdBody { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; padding:8px; }
+    #mdCanvas svg { width:100% !important; height:auto !important; display:block; }
 
     /* ТЕЛЕФОН: компактно, одна колонка, навигация внизу */
     @media (max-width: 700px) {
@@ -240,6 +251,9 @@
       #mobileStepBar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:900; gap:8px; align-items:center;
         padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,14,26,0.96); border-top:1px solid #1e293b; }
       #mobileStepBar .btn { flex:1; height:48px; font-size:15px; }
+      #fabDrawing { display:none; }
+      #mbDraw { flex:0 0 86px !important; background:#d97706; color:#fff; border:1px solid #f59e0b; flex-direction:column; gap:0; line-height:1.1; font-size:16px !important; height:52px !important; }
+      #mbDraw #mbLabel { font-size:10px; color:#fff7ed; min-width:0; }
       #mbLabel { flex:0 0 auto; font-size:12px; color:#94a3b8; font-weight:700; text-align:center; min-width:70px; }
       body.view-all-sections #mobileStepBar { display:none; }
     }
@@ -403,10 +417,25 @@
       </div>
     </div>
 
+    <!-- Кнопка и окно чертежа (доступны с любого шага) -->
+    <button id="fabDrawing" onclick="openDrawingModal()">📐 Чертёж</button>
+    <div id="modalDrawing">
+      <div class="md-head">
+        <button class="btn btn-dark" onclick="drawingWall(-1)" id="mdPrev">‹</button>
+        <div id="mdTitle">Стена 1</div>
+        <button class="btn btn-dark" onclick="drawingWall(1)" id="mdNext">›</button>
+        <button class="btn btn-dark" onclick="drawingZoom(-1)">−</button>
+        <button class="btn btn-dark" onclick="drawingZoom(1)">+</button>
+        <button class="btn btn-primary" onclick="closeDrawingModal()">✕</button>
+      </div>
+      <div id="mdInfo"></div>
+      <div id="mdBody"><div id="mdCanvas"></div></div>
+    </div>
+
     <!-- Нижняя панель навигации (телефон) -->
     <div id="mobileStepBar">
       <button class="btn btn-dark" id="mbBack" onclick="goToStep(currentStep-1)">← Назад</button>
-      <div id="mbLabel">Шаг 1 из 5</div>
+      <button class="btn" id="mbDraw" onclick="openDrawingModal()">📐<div id="mbLabel">Шаг 1 из 5</div></button>
       <button class="btn btn-primary" id="mbNext" onclick="goToStep(currentStep+1)">Далее →</button>
     </div>
 
@@ -4082,6 +4111,45 @@
     let currentStep = 1;
     let isViewAllMode = false;
 
+    let drawingScale = 1;
+    function openDrawingModal() {
+      renderSvgBlueprint();
+      drawingScale = 1;
+      refreshDrawingModal();
+      document.getElementById('modalDrawing').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function refreshDrawingModal() {
+      ensureOrderWalls(appState);
+      const w = getActiveWall();
+      const n = appState.walls.length, i = appState.activeWallIdx;
+      document.getElementById('mdTitle').textContent = (w.name || ('Стена ' + (i + 1))) + (n > 1 ? `  (${i + 1}/${n})` : '');
+      document.getElementById('mdPrev').style.visibility = n > 1 ? 'visible' : 'hidden';
+      document.getElementById('mdNext').style.visibility = n > 1 ? 'visible' : 'hidden';
+      const miss = wallMissingFields(w);
+      document.getElementById('mdInfo').textContent = miss.length
+        ? '⚠️ Стена ещё не замерена: ' + miss.join(', ')
+        : `${appState.cleanW} × ${appState.cleanH} мм • деталей: ${(appState.panels || []).length} • розеток: ${(appState.sockets || []).length}`;
+      const src = document.getElementById('svgBox');
+      const c = document.getElementById('mdCanvas');
+      c.innerHTML = src ? src.innerHTML : '';
+      c.style.width = (drawingScale * 100) + '%';
+    }
+    function drawingZoom(d) {
+      drawingScale = Math.min(4, Math.max(1, drawingScale + d * 0.5));
+      document.getElementById('mdCanvas').style.width = (drawingScale * 100) + '%';
+    }
+    function drawingWall(d) {
+      const n = appState.walls.length;
+      switchActiveWall((appState.activeWallIdx + d + n) % n);
+      renderSvgBlueprint();
+      refreshDrawingModal();
+    }
+    function closeDrawingModal() {
+      document.getElementById('modalDrawing').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
     function toggleFold(ev, titleEl) {
       if (ev && ev.target.closest('button')) return;
       titleEl.parentElement.classList.toggle('folded');
@@ -4092,7 +4160,7 @@
       const mbL = document.getElementById('mbLabel');
       if (mbL) {
         const names = ['', 'Стена', 'Проёмы', 'Фото', 'Материалы', 'Итог'];
-        mbL.innerHTML = `Шаг ${currentStep} из 5<br><span style="color:#e2e8f0;">${names[currentStep]}</span>`;
+        mbL.textContent = "Чертёж";
         document.getElementById('mbBack').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
         document.getElementById('mbNext').style.visibility = currentStep === 5 ? 'hidden' : 'visible';
       }
