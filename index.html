@@ -531,7 +531,7 @@
             <div class="row">
               <div class="col">
                 <label>Номер заказа</label>
-                <input id="inOrderNum" value="Заказ №101" oninput="onStateUpdated()">
+                <input id="inOrderNum" value="" placeholder="Заказ №123" oninput="onStateUpdated()">
               </div>
               <div class="col">
                 <label>Дата сдачи / отгрузки</label>
@@ -549,7 +549,7 @@
             <div class="row">
               <div class="col">
                 <label>Адрес объекта</label>
-                <input id="inAddress" value="г. Образцовый, ул. Примерная, д. 1, кв. 1" oninput="onStateUpdated()">
+                <input id="inAddress" value="" placeholder="г. Москва, ул. Ленина, д. 10, кв. 25, подъезд 2" oninput="onStateUpdated()">
               </div>
             </div>
 
@@ -564,7 +564,7 @@
               </div>
               <div class="col">
                 <label>Этаж</label>
-                <input id="inFloor" type="number" inputmode="numeric" value="3" oninput="onStateUpdated()">
+                <input id="inFloor" type="number" inputmode="numeric" value="" placeholder="5" oninput="onStateUpdated()">
               </div>
               <div class="col">
                 <label>Монтаж</label>
@@ -2196,7 +2196,7 @@
         orderDate: today,
         address: "",
         lift: "Грузовой",
-        floor: 1,
+        floor: '',
         install: "Да + Доставка",
         notes: "",
         discountPercent: 0,
@@ -2593,7 +2593,7 @@
       document.getElementById('inClientName').value = s.clientName || '';
       if (typeof updateSignatureUI === 'function') setTimeout(updateSignatureUI, 0);
       document.getElementById('inLift').value = s.lift || 'Грузовой';
-      document.getElementById('inFloor').value = s.floor || 1;
+      document.getElementById('inFloor').value = s.floor || '';
       document.getElementById('inInstall').value = s.install || 'Да + Доставка';
       document.getElementById('inNotes').value = s.notes || '';
 
@@ -3030,7 +3030,7 @@
       appState.address = document.getElementById('inAddress').value;
       appState.clientName = document.getElementById('inClientName').value;
       appState.lift = document.getElementById('inLift').value;
-      appState.floor = parseInt(document.getElementById('inFloor').value) || 1;
+      appState.floor = parseInt(document.getElementById('inFloor').value) || '';
       appState.install = document.getElementById('inInstall').value;
       appState.notes = document.getElementById('inNotes').value;
       appState.series = document.getElementById('inSeries').value;
