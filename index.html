@@ -221,6 +221,19 @@
     .card.fold.folded > :not(.card-title) { display:none !important; }
     .card.fold.folded > .card-title { margin-bottom:0; border-bottom:none; }
     #mobileStepBar { display:none; }
+    #modalSign { display:none; position:fixed; inset:0; z-index:2100; background:#05080f; flex-direction:column; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); gap:8px; }
+    #modalSign.open { display:flex; }
+    #modalSign .sg-head { display:flex; justify-content:space-between; align-items:center; }
+    .sg-summary { font-size:13px; color:#cbd5e1; background:#0b1222; border:1px solid #1e293b; border-radius:10px; padding:10px; line-height:1.5; }
+    .sg-agree { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#f8fafc; padding:4px 2px; }
+    .sg-agree input { width:24px; height:24px; flex:0 0 auto; }
+    .sg-padwrap { position:relative; flex:1; min-height:180px; background:#ffffff; border-radius:12px; overflow:hidden; touch-action:none; }
+    #sgPad { position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
+    .sg-hint { position:absolute; left:0; right:0; bottom:28%; text-align:center; color:#cbd5e1; font-size:14px; pointer-events:none; border-top:1px dashed #cbd5e1; margin:0 10%; padding-top:6px; }
+    .sg-name { text-align:center; font-size:14px; color:#94a3b8; }
+    .sg-actions { display:flex; gap:8px; }
+    .sg-actions .btn { flex:1; height:52px; font-size:16px; }
+
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       html.theme-light { filter: none !important; }
@@ -250,7 +263,7 @@
     #fabDrawing { position:fixed; right:16px; bottom:20px; z-index:901; height:48px; padding:0 18px; border-radius:24px; border:1px solid #f59e0b;
       background:#d97706; color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.45); cursor:pointer; }
     body.view-all-sections #fabDrawing { display:none; }
-    #modalDrawing { display:none; position:fixed; inset:0; z-index:2000; background:#05080f; flex-direction:column; }
+    #modalDrawing { display:none; position:fixed; inset:0; z-index:2200; background:#05080f; flex-direction:column; }
     #modalDrawing.open { display:flex; }
     #modalDrawing .md-head { display:flex; gap:6px; align-items:center; padding:10px 10px calc(10px); border-bottom:1px solid #1e293b; }
     #modalDrawing .md-head .btn { width:auto; min-width:44px; height:44px; padding:0 12px; font-size:18px; }
@@ -459,6 +472,22 @@
       <div id="mdBody"><div id="mdCanvas"></div></div>
     </div>
 
+    <!-- Окно подписи клиента -->
+    <div id="modalSign">
+      <div class="sg-head">
+        <div style="font-weight:800; font-size:15px;">Согласование замера и сметы</div>
+        <button class="btn btn-dark" style="width:auto; min-width:44px; height:44px;" onclick="closeSignModal()">✕</button>
+      </div>
+      <div id="sgSummary" class="sg-summary"></div>
+      <label class="sg-agree"><input type="checkbox" id="sgAgree"> С размерами, раскладкой и стоимостью ознакомлен(а) и согласен(на)</label>
+      <div class="sg-padwrap"><canvas id="sgPad"></canvas><div class="sg-hint">Распишитесь пальцем здесь</div></div>
+      <div id="sgName" class="sg-name"></div>
+      <div class="sg-actions">
+        <button class="btn btn-dark" onclick="clearSignPad()">Очистить</button>
+        <button class="btn btn-primary" onclick="confirmSignature()">✓ Подписать</button>
+      </div>
+    </div>
+
     <!-- Нижняя панель навигации (телефон) -->
     <div id="mobileStepBar">
       <button class="btn btn-dark" id="mbBack" onclick="goToStep(currentStep-1)">← Назад</button>
@@ -495,6 +524,13 @@
               <div class="col">
                 <label>Дата сдачи / отгрузки</label>
                 <input id="inOrderDate" type="date" value="2026-09-15" oninput="onStateUpdated()">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <label>Клиент (ФИО — для подписи)</label>
+                <input id="inClientName" placeholder="напр. Иванова Мария Петровна" autocomplete="off" oninput="onStateUpdated()">
               </div>
             </div>
 
@@ -1107,6 +1143,10 @@
 
             <!-- Кнопки отправки и печати -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px; border-top:1px solid #202d44; padding-top:12px;">
+              <div id="boxSignStatus" style="font-size:12px; padding:8px 10px; border-radius:8px; border:1px dashed #f59e0b; color:#fbbf24;">Подписи клиента нет</div>
+              <button class="btn" id="btnSign" style="background:#7c3aed; color:#fff; height:52px; font-size:15px;" onclick="openSignModal()">
+                ✍️ Подпись клиента
+              </button>
               <button class="btn btn-amber" onclick="openOrderModal()">
                 📄 Открыть производственный наряд (Бланк)
               </button>
@@ -1227,6 +1267,8 @@
           <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">5. Калькуляция и смета заказа клиенту (фабричный расчет):</b>
           <div id="mPriceBreakdown" style="margin-top:4px; font-family:monospace; display:flex; flex-direction:column; gap:3px;"></div>
         </div>
+
+        <div id="mSignSection" class="pdf-keep" style="border-top:1px solid #25334d; padding-top:8px;"></div>
 
         <div id="mPhotosSection" style="display:none;">
           <b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">6. Фотофиксация объекта (прикрепленные фото):</b>
@@ -2051,6 +2093,7 @@
     }
 
     function saveActiveDraft() {
+      try { if (typeof checkSignatureStillValid === 'function' && !window.__sgChecking) { window.__sgChecking = true; checkSignatureStillValid(); window.__sgChecking = false; } } catch (e) { window.__sgChecking = false; }
       try {
         const draft = sanitizeOrderForLocalStorage(appState);
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -2199,6 +2242,7 @@
       copy.orderNum = (copy.orderNum || 'Заказ') + " (копия)";
       copy.isPriceLocked = false;
       copy.savedPrice = null;
+      copy.signature = null;
       // новые id фото, чтобы удаление копии не стёрло фото оригинала
       const walls = Array.isArray(copy.walls) ? copy.walls : [copy];
       for (const w of walls) {
@@ -2510,6 +2554,8 @@
       document.getElementById('inOrderNum').value = s.orderNum || '';
       document.getElementById('inOrderDate').value = s.orderDate || '';
       document.getElementById('inAddress').value = s.address || '';
+      document.getElementById('inClientName').value = s.clientName || '';
+      if (typeof updateSignatureUI === 'function') setTimeout(updateSignatureUI, 0);
       document.getElementById('inLift').value = s.lift || 'Грузовой';
       document.getElementById('inFloor').value = s.floor || 1;
       document.getElementById('inInstall').value = s.install || 'Да + Доставка';
@@ -2939,6 +2985,7 @@
       appState.orderNum = document.getElementById('inOrderNum').value;
       appState.orderDate = document.getElementById('inOrderDate').value;
       appState.address = document.getElementById('inAddress').value;
+      appState.clientName = document.getElementById('inClientName').value;
       appState.lift = document.getElementById('inLift').value;
       appState.floor = parseInt(document.getElementById('inFloor').value) || 1;
       appState.install = document.getElementById('inInstall').value;
@@ -3633,6 +3680,145 @@
     // =========================================================================
     // ПЕЧАТЬ ОФИЦИАЛЬНОГО БЛАНКА И НАКЛЕЕК ДЛЯ ЦЕХА
     // =========================================================================
+
+    // =========================================================================
+    // ПОДПИСЬ КЛИЕНТА НА ПЛАНШЕТЕ
+    // =========================================================================
+    function orderFingerprint() {
+      ensureOrderWalls(appState);
+      syncAppStateToCurWall();
+      const core = {
+        walls: appState.walls.map(w => ({ d: [w.wTop, w.wMid, w.wBot, w.hLeft, w.hCenter, w.hRight, w.gapWall, w.gapTop, w.stdPanelW, w.doborMode],
+          o: (w.openings || []).map(o => [o.type, o.xWall, o.w, o.h, o.yFloor || 0]),
+          s: (w.sockets || []).map(x => [x.xWall, x.yWall, x.posts, x.type]),
+          m: [w.series, w.baseMat, w.finish] })),
+        price: appState.customPrice
+      };
+      const str = JSON.stringify(core);
+      let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+      return String(h);
+    }
+
+    let sgDrawn = false;
+    function openSignModal() {
+      if (!requireMeasuredOrder()) return;
+      recomputeAllWalls();
+      calculateEstimate();
+      const walls = appState.walls;
+      const price = appState.customPrice || (appState.estimate ? appState.estimate.finalPrice : 0);
+      const area = walls.reduce((a, w) => a + (w.cleanW * w.cleanH) / 1e6, 0);
+      document.getElementById('sgSummary').innerHTML = `
+        <b>${escapeHTML(appState.orderNum || '')}</b> • ${escapeHTML(appState.address || 'адрес не указан')}<br>
+        Стен: <b>${walls.length}</b> (${walls.map(w => `${w.cleanW}×${w.cleanH}`).join(', ')} мм) • площадь ≈ ${area.toFixed(1)} м²<br>
+        ${escapeHTML(appState.series || '')} • ${escapeHTML(walls[0].finish || appState.finish || '')}<br>
+        Итого к оплате: <b style="color:#34d399; font-size:16px;">${Number(price).toLocaleString('ru-RU')} ₽</b>
+        <div style="margin-top:4px;"><a href="#" onclick="openDrawingModal(); return false;" style="color:#60a5fa;">📐 Показать чертёж</a></div>`;
+      document.getElementById('sgName').textContent = appState.clientName ? appState.clientName : 'ФИО клиента не указано (поле «Клиент» на шаге 1)';
+      document.getElementById('sgAgree').checked = false;
+      document.getElementById('modalSign').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(initSignPad, 30);
+    }
+    function closeSignModal() {
+      document.getElementById('modalSign').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function initSignPad() {
+      const c = document.getElementById('sgPad');
+      const r = c.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+      const ctx = c.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, r.width, r.height);
+      ctx.strokeStyle = '#0b1f5c'; ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      sgDrawn = false;
+      let drawing = false, last = null;
+      const pos = e => { const b = c.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
+      c.onpointerdown = e => { drawing = true; last = pos(e); c.setPointerCapture(e.pointerId); e.preventDefault(); };
+      c.onpointermove = e => {
+        if (!drawing) return;
+        const p = pos(e);
+        ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+        last = p; sgDrawn = true; e.preventDefault();
+      };
+      c.onpointerup = c.onpointercancel = () => { drawing = false; };
+    }
+    function clearSignPad() { initSignPad(); }
+    function confirmSignature() {
+      if (!document.getElementById('sgAgree').checked) { alert('Клиенту нужно отметить галочку согласия.'); return; }
+      if (!sgDrawn) { alert('Подпись пустая — распишитесь в белом поле.'); return; }
+      const c = document.getElementById('sgPad');
+      // уменьшаем картинку, чтобы не раздувать память планшета
+      const out = document.createElement('canvas');
+      const k = Math.min(1, 600 / c.width);
+      out.width = Math.round(c.width * k); out.height = Math.round(c.height * k);
+      out.getContext('2d').drawImage(c, 0, 0, out.width, out.height);
+      const price = appState.customPrice || (appState.estimate ? appState.estimate.finalPrice : 0);
+      appState.isPriceLocked = true;
+      appState.savedPrice = price;
+      appState.signature = {
+        img: out.toDataURL('image/png'),
+        at: new Date().toISOString(),
+        name: appState.clientName || '',
+        price,
+        fp: orderFingerprint()
+      };
+      closeSignModal();
+      updateSignatureUI();
+      if (typeof updatePriceLockUI === 'function') updatePriceLockUI();
+      saveActiveDraft();
+      showToast('Подпись клиента сохранена', '✍️', '#10b981');
+    }
+    function signatureValid() {
+      return !!(appState.signature && appState.signature.fp === orderFingerprint());
+    }
+    // Если после подписи изменили замер или смету — подпись снимается
+    function checkSignatureStillValid() {
+      if (appState.signature && appState.signature.fp !== orderFingerprint()) {
+        appState.signature = null;
+        updateSignatureUI();
+        showToast('Заказ изменён — подпись клиента снята, нужна новая', '⚠️', '#f59e0b');
+      }
+    }
+    function formatSignDate(iso) {
+      try { return new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; }
+    }
+    function updateSignatureUI() {
+      const box = document.getElementById('boxSignStatus');
+      const btn = document.getElementById('btnSign');
+      if (!box) return;
+      const sg = appState.signature;
+      if (sg) {
+        box.style.borderColor = '#10b981'; box.style.color = '#34d399'; box.style.borderStyle = 'solid';
+        box.innerHTML = `✓ Подписано клиентом${sg.name ? ': ' + escapeHTML(sg.name) : ''} • ${formatSignDate(sg.at)} • ${Number(sg.price).toLocaleString('ru-RU')} ₽`;
+        if (btn) btn.textContent = '✍️ Переподписать';
+      } else {
+        box.style.borderColor = '#f59e0b'; box.style.color = '#fbbf24'; box.style.borderStyle = 'dashed';
+        box.textContent = 'Подписи клиента нет';
+        if (btn) btn.textContent = '✍️ Подпись клиента';
+      }
+    }
+    function renderSignatureInSheet() {
+      const el = document.getElementById('mSignSection');
+      if (!el) return;
+      const sg = appState.signature;
+      if (sg) {
+        el.innerHTML = `<b style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Согласовано клиентом:</b>
+          <div style="display:flex; gap:14px; align-items:flex-end; margin-top:4px; flex-wrap:wrap;">
+            <img src="${sg.img}" style="height:70px; background:#fff; border:1px solid #ccc; border-radius:4px;">
+            <div style="font-size:12px;">${escapeHTML(sg.name || 'Клиент')}<br>${formatSignDate(sg.at)}<br>Сумма: ${Number(sg.price).toLocaleString('ru-RU')} ₽<br>
+            <span style="font-size:10.5px;">С размерами, раскладкой и стоимостью ознакомлен(а) и согласен(на)</span></div>
+          </div>`;
+      } else {
+        el.innerHTML = `<b style="color:#f59e0b; font-size:11px;">⚠ Подпись клиента отсутствует</b>`;
+      }
+    }
+    function confirmUnsignedSend() {
+      if (signatureValid()) return true;
+      return confirm('Клиент ещё не подписал замер и смету.\nОтправить наряд без подписи?');
+    }
+
     // Пересчитать раскладку и привязку розеток для всех стен (не только открытой)
     function recomputeAllWalls() {
       ensureOrderWalls(appState);
@@ -3652,6 +3838,7 @@
     function openOrderModal() {
       if (!requireMeasuredOrder()) return;
       recomputeAllWalls();
+      renderSignatureInSheet();
       syncAppStateToCurWall();
       const walls = (appState.walls && appState.walls.length > 0) ? appState.walls : [appState];
 
@@ -3911,11 +4098,13 @@
              `  - Монтаж: ${(est.costInstall||0).toLocaleString('ru-RU')} руб.\n` +
              discountRow +
              `ИТОГО К ОПЛАТЕ: ${finalPrice.toLocaleString('ru-RU')} руб.\n` +
+             (appState.signature ? `ПОДПИСАНО КЛИЕНТОМ: ${appState.signature.name || ''} ${formatSignDate(appState.signature.at)} (подпись в PDF наряда)\n` : `ПОДПИСЬ КЛИЕНТА: нет\n`) +
              `==========================================`;
     }
 
     function sendToFactoryEmail() {
       if (!requireMeasuredOrder()) return;
+      if (!confirmUnsignedSend()) return;
       if (!getFactoryEmail()) editFactorySettings();
       const email = getFactoryEmail();
       if (!email) { showToast("Сначала укажите почту цеха", "⚠️", "#f59e0b"); return; }
@@ -3927,6 +4116,7 @@
 
     async function sendToMessengerMax() {
       if (!requireMeasuredOrder()) return;
+      if (!confirmUnsignedSend()) return;
       const text = generateOrderSummaryText();
       if (navigator.share) {
         try { await navigator.share({ title: appState.orderNum, text }); return; }
@@ -4104,6 +4294,7 @@
     // Даёт чёткий векторный документ на А4, многостраничный, без обрезки.
     function downloadOrderPDF() {
       if (!requireMeasuredOrder()) return;
+      if (!confirmUnsignedSend()) return;
       openOrderModal();
       const sheet = document.getElementById('printSheet');
       sheet.classList.add('pdf-light');
