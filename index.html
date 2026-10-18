@@ -4162,6 +4162,12 @@
     // ПРИМЕРКА ПАНЕЛЕЙ НА ФОТО: углы стены → перспектива → маска мебели
     // =========================================================================
     const VIZ_FINISHES = [
+      // реальные образцы из каталога (фото панелей): mm — сколько миллиметров стены занимает ширина картинки
+      { id: 'felt',   name: 'Графит',        kind: 'img', img: 'textures/felt-graphite.jpg', mm: 525, color: [70, 72, 76] },
+      { id: 'caramel',name: 'Карамель',      kind: 'img', img: 'textures/caramel.jpg', mm: 525, color: [176, 104, 52] },
+      { id: 'floral', name: 'Цветы',         kind: 'img', img: 'textures/floral-pink.jpg', mm: 525, color: [226, 200, 204] },
+      { id: 'moss',   name: 'Мох',           kind: 'img', img: 'textures/moss.jpg', mm: 525, color: [120, 150, 40] },
+      { id: 'slatsd', name: 'Рейки тёмные',  kind: 'img', img: 'textures/slats-dark.jpg', mm: 470, color: [60, 48, 40] },
       { id: 'grey',   name: 'Серая ткань',   kind: 'fabric', color: [128, 131, 136] },
       { id: 'graph',  name: 'Графит',        kind: 'fabric', color: [62, 65, 72] },
       { id: 'beige',  name: 'Беж',           kind: 'fabric', color: [196, 178, 152] },
@@ -4171,12 +4177,21 @@
       { id: 'oak',    name: 'Рейки дуб',     kind: 'slats', color: [176, 132, 86] },
       { id: 'walnut', name: 'Рейки орех',    kind: 'slats', color: [104, 70, 46] }
     ];
+    const vizImgs = {};
+    function vizPreload() {
+      VIZ_FINISHES.filter(f => f.img && !vizImgs[f.id]).forEach(f => {
+        const im = new Image();
+        im.onload = () => { vizImgs[f.id] = im; if (viz.finish.id === f.id) { viz.texKey = ''; vizRender(); } };
+        im.src = f.img;
+      });
+    }
     const viz = { photo: null, w: 0, h: 0, pts: null, mode: 'corners', finish: VIZ_FINISHES[0], mask: null, history: [], compare: false, drag: -1, lum: null, avgLum: 1, tex: null, texKey: '' };
 
     function openViz() {
       if (!requireMeasuredOrder()) return;
       recomputeAllWalls();
       const w = getActiveWall();
+      vizPreload();
       document.getElementById('vzTitle').textContent = `Примерка: ${w.name || 'Стена'} ${appState.cleanW}×${appState.cleanH}`;
       document.getElementById('modalViz').classList.add('open');
       document.body.style.overflow = 'hidden';
@@ -4198,6 +4213,7 @@
     }
     function vizSwatchCss(f) {
       const c = `rgb(${f.color.join(',')})`;
+      if (f.img) return `${c} url('${f.img}') center/cover`;
       if (f.kind === 'slats') return `repeating-linear-gradient(90deg, ${c} 0 6px, #111 6px 8px)`;
       return c;
     }
@@ -4262,10 +4278,25 @@
       const x = c.getContext('2d');
       const f = viz.finish, [r, g, b] = f.color;
       x.fillStyle = `rgb(${r},${g},${b})`; x.fillRect(0, 0, c.width, c.height);
+      const srcImg = f.img ? vizImgs[f.id] : null;
+      if (srcImg) {
+        // зеркальная плитка, чтобы не было видно стыков картинки
+        const t = document.createElement('canvas'); t.width = srcImg.width * 2; t.height = srcImg.height * 2;
+        const tx = t.getContext('2d');
+        tx.drawImage(srcImg, 0, 0);
+        tx.save(); tx.translate(t.width, 0); tx.scale(-1, 1); tx.drawImage(srcImg, 0, 0); tx.restore();
+        tx.save(); tx.translate(0, t.height); tx.scale(1, -1); tx.drawImage(srcImg, 0, 0); tx.restore();
+        tx.save(); tx.translate(t.width, t.height); tx.scale(-1, -1); tx.drawImage(srcImg, 0, 0); tx.restore();
+        const pat = x.createPattern(t, 'repeat');
+        const sc = (f.mm * k) / srcImg.width;
+        if (pat.setTransform) pat.setTransform(new DOMMatrix().scale(sc));
+        x.fillStyle = pat; x.fillRect(0, 0, c.width, c.height);
+      }
       const img = x.getImageData(0, 0, c.width, c.height), d = img.data;
       for (let yy = 0; yy < c.height; yy++) for (let xx = 0; xx < c.width; xx++) {
         const i = (yy * c.width + xx) * 4;
         let n = 0;
+        if (f.kind === 'img') continue;
         if (f.kind === 'fabric') n = (Math.random() - 0.5) * 16 + ((xx + yy) % 3 === 0 ? 4 : 0);
         else if (f.kind === 'leather') n = (Math.random() - 0.5) * 10 + Math.sin(xx * 0.07) * Math.cos(yy * 0.05) * 6;
         else n = (Math.random() - 0.5) * 8 + Math.sin(yy * 0.08 + xx * 0.9) * 10;
@@ -4297,7 +4328,7 @@
         x.fillRect(o.xWall * k, y0, o.w * k, o.h * k);
       });
       x.globalCompositeOperation = 'source-over';
-      viz.tex = c; viz.texKey = key;
+      viz.tex = c; viz.texKey = srcImg || !f.img ? key : '';
       return c;
     }
 
@@ -4346,7 +4377,7 @@
       const id = o.getImageData(0, 0, viz.w, viz.h), d = id.data, L = viz.lum, A = viz.avgLum;
       for (let i = 0, j = 0; i < d.length; i += 4, j++) {
         if (!d[i + 3]) continue;
-        const k = Math.max(0.55, Math.min(1.35, L[j] / A));
+        const k = Math.max(0.55, Math.min(1.12, L[j] / A));
         d[i] = Math.min(255, d[i] * k); d[i + 1] = Math.min(255, d[i + 1] * k); d[i + 2] = Math.min(255, d[i + 2] * k);
       }
       o.putImageData(id, 0, 0);

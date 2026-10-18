@@ -10,7 +10,12 @@ const ASSETS_TO_CACHE = [
   './icon-maskable-192.png',
   './icon-maskable-512.png',
   './icon.svg',
-  './html2pdf.bundle.min.js'
+  './html2pdf.bundle.min.js',
+  './textures/felt-graphite.jpg',
+  './textures/caramel.jpg',
+  './textures/floral-pink.jpg',
+  './textures/moss.jpg',
+  './textures/slats-dark.jpg'
 ];
 
 self.addEventListener('install', (event) => {
