@@ -827,7 +827,7 @@
                   <option value="door" selected>🚪 Дверной проём (от пола)</option>
                   <option value="window">🪟 Оконный проём</option>
                   <option value="column">🏛️ Колонна / Выступ стены</option>
-                  <option value="beam">🧱 Короб / ригель под потолком (уступ сверху)</option>
+                  <option value="beam">🧱 Короб / ригель у потолка</option>
                 </select>
               </div>
               <div class="col">
@@ -852,12 +852,12 @@
                 <label>Высота, мм</label>
                 <input id="inOpenH" type="number" inputmode="numeric" value="" placeholder="2097">
               </div>
-              <div id="hintBeam" style="display:none; width:100%; font-size:11px; color:#c9ad8f; margin:-4px 0 8px;">Короб висит от потолка: «Ширина» — сколько он занимает вдоль стены, «Высота» — на сколько опускается от потолка. Если короб в углу, отступ = 0.</div>
               <div class="col" id="boxOpenFloorY" style="display:none;">
                 <label>От пола (Y, мм)</label>
                 <input id="inOpenFloorY" type="number" inputmode="numeric" value="" placeholder="850">
               </div>
             </div>
+              <div id="hintBeam" style="display:none; width:100%; font-size:11px; color:#c9ad8f; margin:-2px 0 10px;">Короб висит от потолка: «Ширина» — сколько он занимает вдоль стены, «Высота» — на сколько опускается от потолка. Если короб в углу, отступ = 0.</div>
 
             <button class="btn btn-amber" onclick="addWallOpening()">+ Добавить дверь / окно</button>
 
