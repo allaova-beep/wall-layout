@@ -827,7 +827,7 @@
                   <option value="door" selected>🚪 Дверной проём (от пола)</option>
                   <option value="window">🪟 Оконный проём</option>
                   <option value="column">🏛️ Колонна / Выступ стены</option>
-                  <option value="beam">🧱 Ригель под потолком</option>
+                  <option value="beam">🧱 Короб / ригель под потолком (уступ сверху)</option>
                 </select>
               </div>
               <div class="col">
@@ -852,6 +852,7 @@
                 <label>Высота, мм</label>
                 <input id="inOpenH" type="number" inputmode="numeric" value="" placeholder="2097">
               </div>
+              <div id="hintBeam" style="display:none; width:100%; font-size:11px; color:#c9ad8f; margin:-4px 0 8px;">Короб висит от потолка: «Ширина» — сколько он занимает вдоль стены, «Высота» — на сколько опускается от потолка. Если короб в углу, отступ = 0.</div>
               <div class="col" id="boxOpenFloorY" style="display:none;">
                 <label>От пола (Y, мм)</label>
                 <input id="inOpenFloorY" type="number" inputmode="numeric" value="" placeholder="850">
@@ -2506,10 +2507,13 @@
         inW.value = 400;
         inH.value = appState.cleanH;
       } else if (type === 'beam') {
-        boxY.style.display = 'block';
-        inW.value = 1200;
-        inH.value = 300;
+        boxY.style.display = 'none';
+        inW.value = '';
+        inH.value = '';
+        inW.placeholder = '765';
+        inH.placeholder = '125';
       }
+      const hb = document.getElementById('hintBeam'); if (hb) hb.style.display = type === 'beam' ? 'block' : 'none';
     }
 
     function onOpenRefChanged() {
@@ -2524,7 +2528,10 @@
       const dist = parseInt(document.getElementById('inOpenDist').value);
       const w = parseInt(document.getElementById('inOpenW').value);
       const h = parseInt(document.getElementById('inOpenH').value);
-      const floorY = (type === 'door' || type === 'column') ? 0 : (parseInt(document.getElementById('inOpenFloorY').value) || 0);
+      const hIn = parseInt(document.getElementById('inOpenH').value);
+      const floorY = (type === 'door' || type === 'column') ? 0
+        : (type === 'beam' ? Math.max(0, (appState.cleanH || 0) - (hIn || 0))
+        : (parseInt(document.getElementById('inOpenFloorY').value) || 0));
 
       if (isNaN(dist) || isNaN(w) || isNaN(h)) {
         alert("Заполните отступ, ширину и высоту проема");
@@ -3140,7 +3147,9 @@
       const cleanW = appState.cleanW;
       const stdW = appState.stdPanelW || 607;
       const mainH = Math.min(appState.cleanH, appState.maxPanelH);
-      const openings = (appState.openings || []).slice().sort((a, b) => a.xWall - b.xWall);
+      const doborZoneH = Math.max(0, (appState.cleanH || 0) - mainH);
+      // Короб под потолком, который целиком в зоне добора, основные панели не трогает — укорачивается только добор
+      const openings = (appState.openings || []).filter(op => !(op.type === 'beam' && op.h <= doborZoneH)).slice().sort((a, b) => a.xWall - b.xWall);
 
       const maxW = Math.max(appState.wTop, appState.wMid, appState.wBot);
       const minW = Math.min(appState.wTop, appState.wMid, appState.wBot);
@@ -3311,18 +3320,13 @@
             // Колонна — полноростовое препятствие, деталей не создается
           } else if (op.type === 'beam') {
             const beamH = op.h || 300;
-            const underH = Math.max(0, mainH - beamH);
+            const underH = Math.max(0, mainH - Math.max(0, beamH - doborZoneH));
             if (underH > 0) {
-              panels.push({
-                id: pid++,
-                startX: ox1,
-                endX: ox2,
-                w: opW,
-                h: underH,
-                yFloor: 0,
-                type: 'Под ригелем потолка',
-                isDoorOverhead: false
-              });
+              for (let x = ox1; x < ox2; x += stdW) {
+                const pw = Math.min(stdW, ox2 - x);
+                panels.push({ id: pid++, startX: x, endX: x + pw, w: pw, h: underH, yFloor: 0,
+                  type: 'Под коробом потолка', isDoorOverhead: false });
+              }
             }
           }
         }
@@ -3605,20 +3609,24 @@
       if (wObj.doborH > 0) {
         const doborH_px = wObj.doborH * scale;
         if (wObj.doborMode === 'solid') {
-          svg += `
-            <rect x="${padLeft}" y="${wallTopY}" width="${drawW}" height="${Math.max(doborH_px, 12)}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
-            <text x="${padLeft + drawW/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 3}" fill="#ffbc00" font-size="7.5" font-weight="bold" text-anchor="middle">
-              Верхний добор (цельные балки): ${w} × ${wObj.doborH} мм
-            </text>
-          `;
-        } else {
-          (wObj.panels || []).forEach(p => {
-            const px = padLeft + (p.startX * scale);
-            const pw = p.w * scale;
+          const pcs = doborPieces(wObj, 0, wObj.cleanW || w);
+          pcs.forEach((pc, k) => {
+            const px = padLeft + pc.x0 * scale, pw = (pc.x1 - pc.x0) * scale;
+            const ph = Math.max(pc.h * scale, 10), py = wallTopY + Math.max(doborH_px, 10) - ph;
+            const lbl = pcs.length === 1 ? `Верхний добор (цельные балки): ${pc.x1 - pc.x0} × ${pc.h} мм` : `${pc.x1 - pc.x0}×${pc.h}`;
             svg += `
-              <rect x="${px}" y="${wallTopY}" width="${Math.max(1, pw - 1)}" height="${Math.max(doborH_px, 12)}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
-              ${pw >= 24 ? `<text x="${px + pw/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 2.5}" fill="#ffbc00" font-size="${pw >= 40 ? 7 : 5.5}" font-weight="bold" text-anchor="middle">${p.w}×${wObj.doborH}</text>` : ''}
-            `;
+            <rect x="${px}" y="${py}" width="${Math.max(1, pw - (k < pcs.length - 1 ? 1 : 0))}" height="${ph}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
+            ${pw >= 30 ? `<text x="${px + pw/2}" y="${py + ph/2 + 3}" fill="#ffbc00" font-size="${pcs.length === 1 ? 7.5 : 7}" font-weight="bold" text-anchor="middle">${lbl}</text>` : ''}`;
+          });
+        } else {
+          (wObj.panels || []).filter(p => !p.yFloor && p.h >= (wObj.maxPanelH || 2440)).forEach(p => {
+            doborPieces(wObj, p.startX, p.startX + p.w).forEach(pc => {
+              const px = padLeft + pc.x0 * scale, pw = (pc.x1 - pc.x0) * scale;
+              const ph = Math.max(pc.h * scale, 10), py = wallTopY + Math.max(doborH_px, 10) - ph;
+              svg += `
+              <rect x="${px}" y="${py}" width="${Math.max(1, pw - 1)}" height="${ph}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
+              ${pw >= 24 ? `<text x="${px + pw/2}" y="${py + ph/2 + 2.5}" fill="#ffbc00" font-size="${pw >= 40 ? 7 : 5.5}" font-weight="bold" text-anchor="middle">${pc.x1 - pc.x0}×${pc.h}</text>` : ''}`;
+            });
           });
         }
       }
@@ -3662,7 +3670,7 @@
         const ox = padLeft + (op.xWall * scale);
         const ow = op.w * scale;
         const oh = op.h * scale;
-        const oy = floorY - ((op.yFloor || 0) + op.h) * scale;
+        const oy = floorY - ((op.type === 'beam' ? Math.max(0, (wObj.cleanH || 0) - op.h) : (op.yFloor || 0)) + op.h) * scale;
 
         let iconLabel = '🚪 Дверь';
         if (op.type === 'window') iconLabel = '🪟 Окно';
@@ -3784,6 +3792,27 @@
     }
     function closeSocketInfo() { const el = document.getElementById('sockInfoSheet'); if (el) el.style.display = 'none'; }
 
+    // Куски верхнего добора на участке [x0,x1] с учётом коробов под потолком
+    function doborPieces(wObj, x0, x1) {
+      const H = wObj.doborH || 0;
+      if (H <= 0) return [];
+      const cuts = new Set([x0, x1]);
+      const beams = (wObj.openings || []).filter(o => o.type === 'beam');
+      beams.forEach(b => { [b.xWall, b.xWall + b.w].forEach(x => { if (x > x0 && x < x1) cuts.add(x); }); });
+      const xs = [...cuts].sort((a, b) => a - b);
+      const out = [];
+      for (let i = 0; i < xs.length - 1; i++) {
+        const a = xs[i], c = xs[i + 1], mid = (a + c) / 2;
+        const bm = beams.find(b => mid > b.xWall && mid < b.xWall + b.w);
+        const h = bm ? Math.max(0, H - bm.h) : H;
+        if (h > 0 && c - a > 0) {
+          const last = out[out.length - 1];
+          if (last && last.h === h && last.x1 === a) last.x1 = c; else out.push({ x0: a, x1: c, h });
+        }
+      }
+      return out;
+    }
+
     function renderSvgBlueprint() {
       const box = document.getElementById('svgBox');
       if (!box) return;
@@ -3842,7 +3871,7 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td><b>Добор верха</b></td>
-            <td style="color:#ffbc00; font-weight:bold;">${w.doborH} × ${w.doborMode === 'solid' ? w.cleanW : 'по раскладке ' + w.stdPanelW}</td>
+            <td style="color:#ffbc00; font-weight:bold;">${(() => { const pcs = doborPieces(w, 0, w.cleanW); return (pcs.length > 1 || (pcs[0] && pcs[0].h !== w.doborH)) ? pcs.map(pc => `${pc.h} × ${pc.x1 - pc.x0}`).join(' + ') + (w.doborMode === 'solid' ? '' : ' (нарезать по раскладке)') : `${w.doborH} × ${w.doborMode === 'solid' ? w.cleanW : 'по раскладке ' + w.stdPanelW}`; })()}</td>
             <td>${escapeHTML(w.baseMat || appState.baseMat)}</td>
             <td>—</td>
             <td><span class="badge badge-amber">${w.doborMode === 'solid' ? 'Цельные балки' : wallPanels.length + ' шт шов-в-шов'}</span></td>
