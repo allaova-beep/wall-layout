@@ -3617,7 +3617,7 @@
             const pw = p.w * scale;
             svg += `
               <rect x="${px}" y="${wallTopY}" width="${Math.max(1, pw - 1)}" height="${Math.max(doborH_px, 12)}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
-              ${pw >= 24 ? `<text x="${px + pw/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 2.5}" fill="#ffbc00" font-size="7" font-weight="bold" text-anchor="middle">${p.w}</text>` : ''}
+              ${pw >= 24 ? `<text x="${px + pw/2}" y="${wallTopY + Math.max(doborH_px, 12)/2 + 2.5}" fill="#ffbc00" font-size="${pw >= 40 ? 7 : 5.5}" font-weight="bold" text-anchor="middle">${p.w}×${wObj.doborH}</text>` : ''}
             `;
           });
         }
