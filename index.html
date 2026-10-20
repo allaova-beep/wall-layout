@@ -713,6 +713,7 @@
               <div style="border-top:1px dashed #4d3219; padding-top:8px; margin-top:2px;">
                 <span style="font-size:10px; color:#34d399; font-weight:bold; display:block; margin-bottom:4px;">ВЫСОТА от пола до потолка:</span>
                 <div style="font-size:10px; color:#c9ad8f; margin:-2px 0 6px;">Если в углу короб и лазер упирается в него — отметьте «до короба». Такая высота не уменьшит добор, а короб внесите на шаге 2.</div>
+                <div id="boxHeightSuspect" style="display:none; margin:0 0 6px; padding:8px 10px; border-radius:8px; border:1px solid #f59e0b; background:rgba(245,158,11,0.12); font-size:12px; font-weight:700;"></div>
                 <div class="row" style="margin-bottom:0;">
                   <div class="col">
                     <label>Левый угол</label>
@@ -730,6 +731,7 @@
                     <label style="display:flex; gap:5px; align-items:center; margin:4px 0 0; font-size:10px; text-transform:none; color:#c9ad8f; cursor:pointer;"><input type="checkbox" id="chkHBeamR" onchange="onSizeChanged()" style="width:16px; height:16px;"> до короба</label>
                   </div>
                 </div>
+                <div id="lblHeightCalc" style="margin-top:8px; font-size:12px; line-height:1.45; color:#c9ad8f;"></div>
               </div>
 
               <!-- 3 контрольные точки отклонения плоскости (пузо / лазерный луч) -->
@@ -2810,6 +2812,7 @@
       document.getElementById('inHCenter').value = (w.hCenter ?? '');
       document.getElementById('inHRight').value = (w.hRight ?? '');
       ['L', 'C', 'R'].forEach(k => { const el = document.getElementById('chkHBeam' + k); if (el) el.checked = !!(w.hBeam || {})[k]; });
+      setTimeout(() => { try { renderHeightCalc(); } catch (e) {} }, 0);
 
       document.getElementById('inDevLeft').value = w.devLeft !== undefined ? w.devLeft : 0;
       document.getElementById('inDevCenter').value = w.devCenter !== undefined ? w.devCenter : 0;
@@ -2947,6 +2950,40 @@
       }
     }
 
+    // Расчёт высоты и добора — прямо под замером, чтобы было видно, откуда цифры
+    function renderHeightCalc() {
+      const lbl = document.getElementById('lblHeightCalc');
+      const sus = document.getElementById('boxHeightSuspect');
+      if (!lbl) return;
+      const hb = appState.hBeam || {};
+      const pts = [['L', 'слева', appState.hLeft], ['C', 'центр', appState.hCenter], ['R', 'справа', appState.hRight]].filter(x => x[2] > 0);
+      if ((appState.measureMode || 9) !== 9) pts.splice(1);
+      if (!pts.length) { lbl.innerHTML = ''; if (sus) sus.style.display = 'none'; return; }
+      const ceil = pts.filter(x => !hb[x[0]]);
+      const use = ceil.length ? ceil : pts;
+      const minH = Math.min(...use.map(x => x[2]));
+      const skipped = pts.filter(x => hb[x[0]]).map(x => `${x[2]} ${x[1]} — до короба, не учитывается`);
+      const gap = appState.gapTop || 0, maxP = appState.maxPanelH || 2440;
+      const cleanH = Math.max(1000, minH - gap);
+      lbl.innerHTML = `Высота стены: меньшая до потолка <b>${minH}</b>${skipped.length ? ' (' + skipped.join('; ') + ')' : ''} − зазор ${gap} мм = <b>${cleanH}</b><br>` +
+        (cleanH > maxP ? `Верхний добор: ${cleanH} − ${maxP} = <b style="color:#d97706;">${cleanH - maxP} мм</b>` : 'Верхний добор не нужен');
+      // Подсказка: одна высота заметно ниже остальных — возможно, до короба
+      if (sus) {
+        const free = pts.filter(x => !hb[x[0]]);
+        const mx = Math.max(...free.map(x => x[2]));
+        const low = free.filter(x => mx - x[2] >= 25);
+        if (free.length >= 2 && low.length === 1) {
+          const x = low[0];
+          sus.style.display = 'block';
+          sus.innerHTML = `Высота ${x[1]} ${x[2]} ниже остальных на ${mx - x[2]} мм. Это до короба? <button type="button" onclick="markHeightBeam('${x[0]}')" style="margin-left:6px; min-height:34px; padding:4px 12px; border-radius:8px; border:0; background:#d97706; color:#fff; font-weight:800; cursor:pointer;">Да, до короба</button>`;
+        } else sus.style.display = 'none';
+      }
+    }
+    function markHeightBeam(k) {
+      const el = document.getElementById('chkHBeam' + k);
+      if (el) { el.checked = true; onSizeChanged(); }
+    }
+
     function onSizeChanged() {
       const wTop = parsePositiveIntInput('inWTop', 400);
       const wMid = parsePositiveIntInput('inWMid', 400);
@@ -3001,6 +3038,7 @@
       document.getElementById('inDoborH').value = appState.doborH;
 
       document.getElementById('lblCleanDim').innerText = `${appState.cleanW} × ${appState.cleanH} мм`;
+      try { renderHeightCalc(); } catch (e) {}
 
       // Анализ перепада клина и плоскости
       const maxW = Math.max(appState.wTop, appState.wMid, appState.wBot);
