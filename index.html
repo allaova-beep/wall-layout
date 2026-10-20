@@ -1044,23 +1044,33 @@
               <div class="col">
                 <label>Вид отделки</label>
                 <select id="inFinish" onchange="onFinishChanged()">
-                  <option value="Ткань рогожка 1й сорт">Рогожка 1 сорт</option>
-                  <option value="Ткань велюр Premium">Ткань велюр Premium</option>
+                  <option value="Рогожка">Рогожка (ткань)</option>
+                  <option value="Ткань с запечаткой">Ткань с запечаткой</option>
                   <option value="Эко-кожа">Эко-кожа</option>
-                  <option value="Рейки 30×10 мм">Рейки (30×10 мм)</option>
-                  <option value="Рейки 30×16 мм">Рейки (30×16 мм)</option>
-                  <option value="Рейки 30×22 мм (под потолок)">Рейки (30×22 мм под потолок)</option>
+                  <option value="Натуральная кожа">Натуральная кожа</option>
+                  <option value="Рейки">Рейки</option>
+                  <option value="Мох">Мох</option>
                 </select>
               </div>
               <div class="col">
-                <label>Основа</label>
+                <label>Толщина панели</label>
                 <select id="inBase" onchange="onStateUpdated()">
-                  <option value="МДФ 12 мм">МДФ 12 мм</option>
-                  <option value="МДФ 9 мм">МДФ 9 мм</option>
-                  <option value="Фанера 12 мм">Фанера 12 мм</option>
-                  <option value="ЛДСП 16 мм">ЛДСП 16 мм</option>
+                  <option value="50 мм межкомнатная (брусок 30)">50 мм — межкомнатная</option>
+                  <option value="65 мм межквартирная (брусок 40 + фанера 12)">65 мм — межквартирная</option>
+                  <option value="70 мм коммерческая (брусок 40 + фанера 18)">70 мм — коммерческая</option>
                 </select>
               </div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <label>Название дизайна (как в каталоге)</label>
+              <input id="inDesign" value="" placeholder="напр. Графит, Карамель, Цветы" oninput="onDesignChanged()">
+            </div>
+
+            <div style="margin-bottom:10px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
+              <div style="font-weight:700; color:#fff; font-size:12px;">💡 Подсветка — какие панели</div>
+              <div style="font-size:11px; color:#c9ad8f; margin:2px 0 8px;">Лента идёт вертикально с двух сторон панели на всю высоту (с добором). Нажмите номера панелей.</div>
+              <div id="boxLightChips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+              <div id="lblLightSum" style="font-size:11px; color:#ffcf98; margin-top:6px; font-weight:700;"></div>
             </div>
 
             <!-- Выбор клиента по верхнему добору -->
@@ -1225,13 +1235,13 @@
           <div class="card" style="border-color:#ffcf98;">
             <div class="card-title">
               <span>💰 Смета для клиента</span>
-              <span class="badge badge-amber" id="badgePriceFormula">цены примерные</span>
+              <span class="badge badge-green" id="badgePriceFormula">по прайсу AKO</span>
             </div>
 
             <!-- Фиксация цены договора и почта цеха -->
             <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:8px; border:1px solid #4d3219; margin-bottom:8px; font-size:11px;">
               <div id="boxPriceLockStatus" style="display:flex; align-items:center; gap:6px;">
-                <span id="lblPriceLockBadge" class="badge badge-amber">Цены примерные — ждём прайс</span>
+                <span id="lblPriceLockBadge" class="badge badge-green">Цены по прайсу AKO Sound</span>
               </div>
               
             </div>
@@ -1246,6 +1256,14 @@
                 <div style="font-size:11px; color:#c9ad8f;">Чистая площадь:</div>
                 <div style="font-size:14px; font-weight:800; color:#34d399;" id="lblNetArea">10.72 м²</div>
               </div>
+            </div>
+
+            <!-- Условия прайса -->
+            <div style="margin-top:10px; background:#1b110a; padding:8px 10px; border-radius:8px; border:1px solid #4d3219; display:flex; flex-direction:column; gap:6px; font-size:12px;">
+              <label style="display:flex; gap:8px; align-items:center; margin:0; text-transform:none; cursor:pointer;"><input type="checkbox" id="chkPriceDealer" onchange="onPriceTermsChanged()" style="width:20px; height:20px;"> <span>Дилер (−25%)</span></label>
+              <label style="display:flex; gap:8px; align-items:center; margin:0; text-transform:none; cursor:pointer;"><input type="checkbox" id="chkPriceNeighbors" onchange="onPriceTermsChanged()" style="width:20px; height:20px;"> <span>Акция «Лучшие соседи» — 2 смежные квартиры (−15%)</span></label>
+              <label style="display:flex; gap:8px; align-items:center; margin:0; text-transform:none; cursor:pointer;"><input type="checkbox" id="chkPriceComplex" onchange="onPriceTermsChanged()" style="width:20px; height:20px;"> <span>Сложный заказ / монтаж / расчёт (+15%)</span></label>
+              <div style="font-size:11px; color:#c9ad8f;">Монтаж (+15%) и доставка (1 000 ₽ за панель по Москве и МО) — по полю «Работы» на шаге 1.</div>
             </div>
 
             <!-- Управление скидкой -->
@@ -1468,6 +1486,53 @@
     // =========================================================================
     // БЕЗОПАСНОСТЬ: ЭКРАНИРОВАНИЕ HTML ДЛЯ ЗАЩИТЫ ОТ XSS
     // =========================================================================
+    // Прайс Олега («Калькулятор AKO Sound»): цена за панель 1,44 м² (600 × 2400) по толщине 50 / 65 / 70 мм
+    const PRICE_TABLE = {
+      'Рогожка':            [16980, 19980, 24980],
+      'Ткань с запечаткой': [19980, 24980, 29980],
+      'Эко-кожа':           [21980, 26980, 31980],
+      'Натуральная кожа':   [49980, 54980, 59980],
+      'Рейки':              [34980, 39980, 44980],
+      'Мох':                [49980, 54980, 59980]
+    };
+    const PRICE = {
+      panelM2: 1.44,
+      socketKit: 4980,      // комплект на 2 поста: розетка Lezard Zima + подрозетник 220×150 + базальтовая вата
+      lightKit: 9980,       // лента 5 м (120 диодов) + направляющая 5 м
+      lightKitM: 5,
+      deliveryPerPanel: 1000, // Москва и МО
+      dealerPct: 25, neighborsPct: 15, installPct: 15, complexPct: 15
+    };
+    const BASE_OPTIONS = ['50 мм межкомнатная (брусок 30)', '65 мм межквартирная (брусок 40 + фанера 12)', '70 мм коммерческая (брусок 40 + фанера 18)'];
+    function normBase(v) {
+      const s = String(v || '');
+      const i = ['50', '65', '70'].findIndex(x => s.startsWith(x));
+      return BASE_OPTIONS[i >= 0 ? i : 1];
+    }
+    function baseIdx(v) { return BASE_OPTIONS.indexOf(normBase(v)); }
+    function normFinish(v) {
+      const s = String(v || '');
+      if (PRICE_TABLE[s]) return s;
+      if (/рейк/i.test(s)) return 'Рейки';
+      if (/эко/i.test(s)) return 'Эко-кожа';
+      if (/кож/i.test(s)) return 'Натуральная кожа';
+      if (/мох/i.test(s)) return 'Мох';
+      if (/печат/i.test(s)) return 'Ткань с запечаткой';
+      return 'Рогожка';
+    }
+    function finishLabel(w) {
+      const f = normFinish(w.finish);
+      return f + (w.designName ? ` «${w.designName}»` : '');
+    }
+    function wallLightMeters(w) {
+      const ids = new Set(w.lightPanels || []);
+      const n = (w.panels || []).filter(p => ids.has(p.id) && !p.yFloor).length;
+      return { n, m: n * 2 * (w.cleanH || 0) / 1000 };
+    }
+    function socketKits(w) {
+      return (w.sockets || []).reduce((acc, s) => acc + Math.ceil(sockCutout(s).n / 2), 0);
+    }
+
     function escapeHTML(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -1634,11 +1699,13 @@
         doborH: doborH,
         balanceDobor: true,
         series: 'Optima (60 мм)',
-        baseMat: 'МДФ 12 мм',
-        finish: 'Ткань рогожка 1й сорт',
+        baseMat: '65 мм межквартирная (брусок 40 + фанера 12)',
+        finish: 'Рогожка',
         openings: [],
         sockets: [],
         embeds: [],
+        designName: '',
+        lightPanels: [],
         photos: [],
         panels: []
       };
@@ -1670,8 +1737,8 @@
           doborH: order.doborH || 0,
           balanceDobor: order.balanceDobor !== false,
           series: order.series || 'Optima (60 мм)',
-          baseMat: order.baseMat || 'МДФ 12 мм',
-          finish: order.finish || 'Ткань рогожка 1й сорт',
+          baseMat: normBase(order.baseMat),
+          finish: normFinish(order.finish),
           openings: order.openings || [],
           sockets: order.sockets || [],
           photos: order.photos || [],
@@ -1717,6 +1784,8 @@
       appState.openings = w.openings;
       appState.sockets = w.sockets;
       appState.embeds = w.embeds || (w.embeds = []);
+      appState.designName = w.designName || '';
+      appState.lightPanels = w.lightPanels || (w.lightPanels = []);
       appState.photos = w.photos;
       appState.panels = w.panels;
       appState.layoutShift = w.layoutShift || 0;
@@ -1750,6 +1819,8 @@
       w.openings = appState.openings;
       w.sockets = appState.sockets;
       w.embeds = appState.embeds || [];
+      w.designName = appState.designName || '';
+      w.lightPanels = appState.lightPanels || [];
       w.photos = appState.photos;
       w.panels = appState.panels;
       w.layoutShift = appState.layoutShift || 0;
@@ -2715,8 +2786,10 @@
       if (rdSolid) rdSolid.checked = true;
 
       document.getElementById('inSeries').value = w.series || 'Optima (60 мм)';
-      document.getElementById('inBase').value = w.baseMat || 'МДФ 12 мм';
-      document.getElementById('inFinish').value = w.finish || 'Ткань рогожка 1й сорт';
+      w.baseMat = normBase(w.baseMat); w.finish = normFinish(w.finish);
+      document.getElementById('inBase').value = w.baseMat;
+      document.getElementById('inFinish').value = w.finish;
+      const inDes = document.getElementById('inDesign'); if (inDes) inDes.value = w.designName || '';
 
       toggleMeasureMode(w.measureMode || 9, false);
       renderOpeningsList();
@@ -2741,6 +2814,9 @@
 
       const inDisc = document.getElementById('inDiscount');
       if (inDisc) inDisc.value = s.discountPercent || 0;
+      [['chkPriceDealer', 'priceDealer'], ['chkPriceNeighbors', 'priceNeighbors'], ['chkPriceComplex', 'priceComplex']].forEach(([id, k]) => {
+        const el = document.getElementById(id); if (el) el.checked = !!s[k];
+      });
 
       syncCurWallToAppState();
       applyWallToUI(getActiveWall());
@@ -2759,7 +2835,7 @@
           <button onclick="unlockPriceRecalculate()" style="background:none; border:none; color:#ffcf98; cursor:pointer; font-size:10px; text-decoration:underline;" title="Пересчитать по актуальным тарифам">Пересчитать</button>
         `;
       } else {
-        box.innerHTML = `<span id="lblPriceLockBadge" class="badge badge-amber">Цены примерные — ждём прайс</span>`;
+        box.innerHTML = `<span id="lblPriceLockBadge" class="badge badge-green">Цены по прайсу AKO Sound</span>`;
       }
     }
 
@@ -2911,20 +2987,6 @@
     // =========================================================================
     // ТАРИФЫ И КОРПОРАТИВНЫЙ РАСЧЕТ СМЕТЫ
     // =========================================================================
-    const FINISH_RATES = {
-      "Ткань рогожка 1й сорт": 14500,
-      "Ткань велюр Premium": 16800,
-      "Эко-кожа": 21500,
-      "Рейки 30×10 мм": 32000,
-      "Рейки 30×16 мм": 35500,
-      "Рейки 30×22 мм (под потолок)": 44500
-    };
-    const SOCKET_POST_RATE = 600;
-    const DOBOR_METER_RATE = 1200;
-    const BASE_DELIVERY_RATE = 3500;
-    const FLOOR_LIFT_RATE = 500;
-    const INSTALL_M2_RATE = 2500;
-    const INSTALL_MIN_RATE = 12000;
 
     function onDiscountChanged() {
       const val = parseFloat(document.getElementById('inDiscount').value);
@@ -2994,160 +3056,135 @@
     function calculateEstimate() {
       ensureOrderWalls(appState);
       syncAppStateToCurWall();
+      const fmt = n => Math.round(n).toLocaleString('ru-RU');
 
-      let totalGrossArea = 0;
-      let totalOpeningsArea = 0;
-      let totalNetArea = 0;
-      let totalCostPanels = 0;
-      let totalPosts = 0;
-      let totalCostDobor = 0;
+      let totalGrossArea = 0, totalOpeningsArea = 0, totalNetArea = 0;
+      let totalCount = 0, totalCostPanels = 0, totalKits = 0, totalLightM = 0, totalLightPanels = 0;
 
+      // Добор идёт в общую квадратуру: площадь = чистая высота × ширина − проёмы
       const wallsSummary = appState.walls.map((w, idx) => {
-        const gross = (w.cleanW * w.cleanH) / 1000000;
+        const gross = ((w.cleanW || 0) * (w.cleanH || 0)) / 1000000;
         const opArea = calculateOpeningsUnionArea(w.openings || []);
         const net = Math.max(0, gross - opArea);
-        const rate = FINISH_RATES[w.finish || appState.finish] || 14500;
-        const costP = Math.round(net * rate);
-
-        let posts = 0;
-        (w.sockets || []).forEach(s => {
-          const m = (s.posts || '').match(/(\d+)/);
-          posts += m ? parseInt(m[1]) : 1;
-        });
-
-        const doborCost = (w.doborH > 0) ? Math.round((w.cleanW / 1000) * DOBOR_METER_RATE) : 0;
-
-        totalGrossArea += gross;
-        totalOpeningsArea += opArea;
-        totalNetArea += net;
-        totalCostPanels += costP;
-        totalPosts += posts;
-        totalCostDobor += doborCost;
-
-        return {
-          wall: w,
-          name: w.name || `Стена ${idx + 1}`,
-          grossArea: gross,
-          openingsArea: opArea,
-          netArea: net,
-          rateFinish: rate,
-          costPanels: costP,
-          postsCount: posts,
-          costSockets: posts * SOCKET_POST_RATE,
-          costDobor: doborCost
-        };
+        const fin = normFinish(w.finish), bi = baseIdx(w.baseMat);
+        const rate = PRICE_TABLE[fin][bi];
+        const count = net / PRICE.panelM2;
+        const costP = Math.round(count * rate);
+        const kits = socketKits(w);
+        const lt = wallLightMeters(w);
+        totalGrossArea += gross; totalOpeningsArea += opArea; totalNetArea += net;
+        totalCount += count; totalCostPanels += costP; totalKits += kits;
+        totalLightM += lt.m; totalLightPanels += lt.n;
+        return { wall: w, name: w.name || `Стена ${idx + 1}`, grossArea: gross, openingsArea: opArea, netArea: net,
+                 panelCount: count, rateFinish: rate, finishLabel: finishLabel(w), thickness: ['50', '65', '70'][bi],
+                 costPanels: costP, kits, lightM: lt.m, lightPanels: lt.n };
       });
 
-      const costSockets = totalPosts * SOCKET_POST_RATE;
+      const costSockets = totalKits * PRICE.socketKit;
+      const costLights = Math.round(totalLightM * PRICE.lightKit / PRICE.lightKitM);
+      const base = totalCostPanels + costSockets + costLights;
 
-      // Логистика на весь адрес единожды
-      let costDelivery = 0;
-      let costLift = 0;
-      if (appState.install !== 'Самовывоз') {
-        costDelivery = BASE_DELIVERY_RATE;
-        if (appState.lift !== 'Грузовой') {
-          const fl = Math.max(0, (parseInt(appState.floor) || 1) - 1);
-          costLift = fl * FLOOR_LIFT_RATE;
-        }
-      }
-      const costLogistics = costDelivery + costLift;
+      const dealerAmt = appState.priceDealer ? Math.round(base * PRICE.dealerPct / 100) : 0;
+      const afterDealer = base - dealerAmt;
+      const neighborsAmt = appState.priceNeighbors ? Math.round(afterDealer * PRICE.neighborsPct / 100) : 0;
+      const afterDisc = afterDealer - neighborsAmt;
+      const costInstall = appState.install === 'Да + Доставка' ? Math.round(afterDisc * PRICE.installPct / 100) : 0;
+      const costComplex = appState.priceComplex ? Math.round(afterDisc * PRICE.complexPct / 100) : 0;
+      const costDelivery = appState.install !== 'Самовывоз' ? Math.round(totalCount * PRICE.deliveryPerPanel) : 0;
 
-      // Монтаж на весь совокупный метраж со всех стен единожды
-      let costInstall = 0;
-      if (appState.install === 'Да + Доставка') {
-        costInstall = Math.max(INSTALL_MIN_RATE, Math.round(totalNetArea * INSTALL_M2_RATE));
-      }
-
-      const subtotal = totalCostPanels + costSockets + totalCostDobor + costLogistics + costInstall;
-      const discountPct = (appState.discountPercent !== undefined) ? parseFloat(appState.discountPercent) : 0;
+      const subtotal = afterDisc + costInstall + costComplex + costDelivery;
+      const discountPct = (appState.discountPercent !== undefined) ? parseFloat(appState.discountPercent) || 0 : 0;
       const discountAmount = Math.round(subtotal * (discountPct / 100));
       const calcPrice = Math.max(0, subtotal - discountAmount);
-
       const finalPrice = (appState.isPriceLocked && appState.savedPrice) ? appState.savedPrice : calcPrice;
       appState.customPrice = finalPrice;
 
+      // Строки сметы — одни и те же для экрана, наряда и сообщения в цех
+      const lines = [];
+      wallsSummary.forEach(ws => {
+        lines.push({ label: `${wallsSummary.length > 1 ? ws.name + ': ' : ''}Панели ${ws.thickness} мм, ${ws.finishLabel} — ${ws.netArea.toFixed(2)} м² = ${ws.panelCount.toFixed(2)} пан. × ${fmt(ws.rateFinish)} ₽`, amount: ws.costPanels });
+      });
+      if (totalKits) lines.push({ label: `Розетки: комплект на 2 поста × ${totalKits}`, amount: costSockets });
+      if (totalLightPanels) lines.push({ label: `Подсветка: ${totalLightPanels} пан., ${totalLightM.toFixed(1)} м ленты × ${fmt(PRICE.lightKit / PRICE.lightKitM)} ₽/м`, amount: costLights });
+      if (dealerAmt) lines.push({ label: `Дилер −${PRICE.dealerPct}%`, amount: -dealerAmt, accent: true });
+      if (neighborsAmt) lines.push({ label: `Акция «Лучшие соседи» −${PRICE.neighborsPct}%`, amount: -neighborsAmt, accent: true });
+      lines.push({ label: `Монтаж +${PRICE.installPct}%`, amount: costInstall, none: appState.install === 'Да + Доставка' ? '' : 'не включён' });
+      if (costComplex) lines.push({ label: `Сложный заказ +${PRICE.complexPct}%`, amount: costComplex });
+      lines.push({ label: `Доставка Москва и МО: ${totalCount.toFixed(2)} пан. × ${fmt(PRICE.deliveryPerPanel)} ₽`, amount: costDelivery, none: appState.install === 'Самовывоз' ? 'самовывоз' : '' });
+      if (discountAmount) lines.push({ label: `Скидка клиенту ${discountPct}%`, amount: -discountAmount, accent: true });
+
       appState.estimate = {
-        wallsSummary,
-        perWall: wallsSummary,
-        grossArea: totalGrossArea,
-        openingsArea: totalOpeningsArea,
-        netArea: totalNetArea,
-        costPanels: totalCostPanels,
-        totalCostPanels,
-        totalPosts,
-        costSockets,
-        costDobor: totalCostDobor,
-        costDelivery,
-        costLift,
-        costLogistics,
-        costInstall,
-        subtotal,
-        discountPct,
-        discountAmount,
-        finalPrice
+        wallsSummary, perWall: wallsSummary, lines,
+        grossArea: totalGrossArea, openingsArea: totalOpeningsArea, netArea: totalNetArea, panelCount: totalCount,
+        costPanels: totalCostPanels, totalCostPanels, socketKits: totalKits, costSockets,
+        lightM: totalLightM, lightPanels: totalLightPanels, costLights,
+        dealerAmt, neighborsAmt, costInstall, costComplex, costDelivery, costLogistics: costDelivery,
+        subtotal, discountPct, discountAmount, finalPrice
       };
 
       const lblTotal = document.getElementById('lblTotalPrice');
       const lblArea = document.getElementById('lblNetArea');
       const lblDisc = document.getElementById('lblDiscountRub');
       const pBreakdown = document.getElementById('lstPriceBreakdown');
-
       if (lblTotal) lblTotal.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
       if (lblArea) lblArea.innerText = totalNetArea.toFixed(2) + ' м²';
       if (lblDisc) lblDisc.innerText = (discountAmount > 0 ? `-${discountAmount.toLocaleString('ru-RU')} ₽` : '0 ₽');
 
       if (pBreakdown) {
-        let wallsHtml = '';
-        if (wallsSummary.length === 1) {
-          const ws = wallsSummary[0];
-          wallsHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-              <span>🧱 Панели отделки (${escapeHTML(ws.wall.finish || appState.finish)}, ${ws.netArea.toFixed(2)} м² × ${ws.rateFinish.toLocaleString('ru-RU')} ₽)</span>
-              <b style="color:#ffcf98;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
-            </div>
-          `;
-        } else {
-          wallsSummary.forEach((ws, i) => {
-            wallsHtml += `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-                <span>🧱 Стена ${i + 1} «${escapeHTML(ws.name)}» (${escapeHTML(ws.wall.finish || appState.finish)}, ${ws.netArea.toFixed(2)} м² × ${ws.rateFinish.toLocaleString('ru-RU')} ₽)</span>
-                <b style="color:#ffcf98;">${ws.costPanels.toLocaleString('ru-RU')} ₽</b>
-              </div>
-            `;
-          });
-        }
-
-        pBreakdown.innerHTML = `
-          ${wallsHtml}
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-            <span>🔌 Выпилы под розетки (всего ${totalPosts} постов × 600 ₽)</span>
-            <b style="color:${costSockets > 0 ? '#ffcf98' : '#9a7a5c'};">${costSockets > 0 ? costSockets.toLocaleString('ru-RU') + ' ₽' : '0 ₽ (нет)'}</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-            <span>📏 Верхний добор со всех стен:</span>
-            <b style="color:${totalCostDobor > 0 ? '#ffcf98' : '#9a7a5c'};">${totalCostDobor > 0 ? totalCostDobor.toLocaleString('ru-RU') + ' ₽' : '—'}</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-            <span>🚚 Доставка и занос (${appState.install === 'Самовывоз' ? 'самовывоз' : (costLift > 0 ? appState.lift + ', ' + appState.floor + ' эт' : 'базовая')})</span>
-            <b style="color:${costLogistics > 0 ? '#ffcf98' : '#9a7a5c'};">${costLogistics.toLocaleString('ru-RU')} ₽ (единожды)</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:5px 8px; border-radius:6px; border:1px solid #311c0d;">
-            <span>🛠️ Монтаж (${appState.install === 'Да + Доставка' ? totalNetArea.toFixed(2) + ' м²' : 'не включён'})</span>
-            <b style="color:${costInstall > 0 ? '#ffcf98' : '#9a7a5c'};">${costInstall > 0 ? costInstall.toLocaleString('ru-RU') + ' ₽' : '0 ₽'}</b>
-          </div>
-          ${discountAmount > 0 ? `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(224, 138, 42, 0.1); padding:5px 8px; border-radius:6px; border:1px solid #e08a2a;">
-            <span style="color:#ffbc00;">🏷️ Скидка клиенту (${discountPct}%)</span>
-            <b style="color:#ffbc00;">-${discountAmount.toLocaleString('ru-RU')} ₽</b>
-          </div>` : ''}
+        pBreakdown.innerHTML = lines.map(l => `
+          <div style="display:flex; justify-content:space-between; gap:8px; align-items:center; background:${l.accent ? 'rgba(224,138,42,0.1)' : '#1b110a'}; padding:5px 8px; border-radius:6px; border:1px solid ${l.accent ? '#e08a2a' : '#311c0d'};">
+            <span style="${l.accent ? 'color:#ffbc00;' : ''}">${escapeHTML(l.label)}</span>
+            <b style="white-space:nowrap; color:${l.none ? '#9a7a5c' : (l.accent ? '#ffbc00' : '#ffcf98')};">${l.none ? l.none : (l.amount < 0 ? '−' : '') + fmt(Math.abs(l.amount)) + ' ₽'}</b>
+          </div>`).join('') + `
           <div style="display:flex; justify-content:space-between; align-items:center; background:#2a190c; padding:6px 8px; border-radius:6px; border:1px solid #ffcf98; margin-top:2px;">
             <b style="color:#fff;">ИТОГО К ОПЛАТЕ:</b>
             <b style="color:#34d399; font-size:14px; font-family:monospace;">${finalPrice.toLocaleString('ru-RU')} ₽</b>
-          </div>
-        `;
+          </div>`;
       }
+      try { renderLightChips(); } catch (e) {}
       updateHeaderSummary();
       return appState.estimate;
+    }
+
+    function estLineText(l) {
+      return l.none ? l.none : (l.amount < 0 ? '−' : '') + Math.round(Math.abs(l.amount)).toLocaleString('ru-RU') + ' ₽';
+    }
+
+    function onPriceTermsChanged() {
+      appState.priceDealer = !!document.getElementById('chkPriceDealer').checked;
+      appState.priceNeighbors = !!document.getElementById('chkPriceNeighbors').checked;
+      appState.priceComplex = !!document.getElementById('chkPriceComplex').checked;
+      calculateEstimate();
+      saveActiveDraft();
+    }
+
+    function onDesignChanged() {
+      appState.designName = document.getElementById('inDesign').value.trim();
+      syncAppStateToCurWall();
+      calculateEstimate();
+      renderTablesAndStock();
+      saveActiveDraft();
+    }
+
+    function toggleLightPanel(id) {
+      const set = new Set(appState.lightPanels || []);
+      set.has(id) ? set.delete(id) : set.add(id);
+      appState.lightPanels = [...set].sort((a, b) => a - b);
+      syncAppStateToCurWall();
+      calculateEstimate();
+      renderTablesAndStock();
+      saveActiveDraft();
+    }
+
+    function renderLightChips() {
+      const box = document.getElementById('boxLightChips');
+      if (!box) return;
+      const ids = new Set(appState.lightPanels || []);
+      const panels = (appState.panels || []).filter(p => !p.yFloor);
+      box.innerHTML = panels.length ? panels.map(p => `<button type="button" onclick="toggleLightPanel(${p.id})" style="min-width:46px; min-height:40px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; border:2px solid ${ids.has(p.id) ? '#f59e0b' : '#4d3219'}; background:${ids.has(p.id) ? '#f59e0b' : 'transparent'}; color:${ids.has(p.id) ? '#1b110a' : '#c9ad8f'};">${ids.has(p.id) ? '💡' : ''}№${p.id}</button>`).join('') : '<span style="font-size:11px; color:#9a7a5c;">Сначала замер стены</span>';
+      const lt = wallLightMeters(getActiveWall());
+      const lbl = document.getElementById('lblLightSum');
+      if (lbl) lbl.innerText = lt.n ? `${lt.n} пан. × 2 × ${appState.cleanH} мм = ${lt.m.toFixed(1)} м ленты и направляющей` : 'Без подсветки';
     }
 
     function onDoborModeChanged() {
@@ -3578,7 +3615,9 @@
       return (w.embeds || []).filter(e => embedPanels(e, w.panels).some(q => q.id === p.id));
     }
     function embedText(w, p) {
-      return panelEmbeds(w, p).map(e => `Закладная В=${e.yWall - (p.yFloor || 0)} [${e.type}]`).join('; ');
+      const parts = panelEmbeds(w, p).map(e => `Закладная В=${e.yWall - (p.yFloor || 0)} [${e.type}]`);
+      if ((w.lightPanels || []).includes(p.id) && !p.yFloor) parts.push('Подсветка с 2 сторон');
+      return parts.join('; ');
     }
     function joinNotes(a, b) { return [a, b].filter(Boolean).join('; '); }
 
@@ -4064,7 +4103,7 @@
           const trH = document.createElement('tr');
           trH.innerHTML = `
             <td colspan="5" style="background:#3a2412; color:#ffe2bf; font-weight:bold; padding:8px 10px; font-size:12px; border-top:2px solid #ffcf98;">
-              🧱 СТЕНА ${wIdx + 1}: «${escapeHTML(w.name || 'Стена ' + (wIdx + 1))}» — чистый габарит ${w.cleanW} × ${w.cleanH} мм • ${escapeHTML(w.finish || appState.finish)}
+              🧱 СТЕНА ${wIdx + 1}: «${escapeHTML(w.name || 'Стена ' + (wIdx + 1))}» — чистый габарит ${w.cleanW} × ${w.cleanH} мм • ${escapeHTML(finishLabel(w))} • ${escapeHTML(normBase(w.baseMat))}
             </td>
           `;
           tbody.appendChild(trH);
@@ -4150,11 +4189,11 @@
           const sockText = joinNotes(socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | '), embedText(w, p));
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
-          csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${w.finish || appState.finish}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
+          csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
         });
 
         if (w.doborH > 0) {
-          csv += `"${wallName}";Добор;${w.cleanW};${w.doborH};${w.cleanW};"${w.baseMat || appState.baseMat}";"${w.finish || appState.finish}";"Верхний добор";"";"${w.doborMode === 'solid' ? 'Цельные балки' : 'Составной'}"\n`;
+          csv += `"${wallName}";Добор;${w.cleanW};${w.doborH};${w.cleanW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"Верхний добор";"";"${w.doborMode === 'solid' ? 'Цельные балки' : 'Составной'}"\n`;
         }
       });
 
@@ -4183,7 +4222,7 @@
           o: (w.openings || []).map(o => [o.type, o.xWall, o.w, o.h, o.yFloor || 0]),
           s: (w.sockets || []).map(x => [x.xWall, x.yWall, x.posts, x.type]),
           e: (w.embeds || []).map(x => [x.xWall, x.wZone, x.yWall]),
-          m: [w.series, w.baseMat, w.finish] })),
+          m: [w.series, w.baseMat, w.finish, w.designName || '', (w.lightPanels || []).join(',')] })),
         price: appState.customPrice
       };
       const str = JSON.stringify(core);
@@ -4388,7 +4427,7 @@
       ctx.fillText(`${appState.orderNum || ''}  •  ${formatSignDate(appState.signature ? appState.signature.at : new Date().toISOString())}`, M, y); y += 38;
       y = wrapText(ctx, `Адрес: ${appState.address || '—'}`, M, y, W - 2 * M, 34);
       ctx.fillText(`Клиент: ${appState.clientName || '—'}`, M, y); y += 34;
-      ctx.fillText(`Материал: ${appState.series || ''} • ${(appState.walls[0] && appState.walls[0].finish) || appState.finish || ''}`, M, y); y += 20;
+      ctx.fillText(`Материал: ${appState.walls[0] ? finishLabel(appState.walls[0]) + ' • ' + normBase(appState.walls[0].baseMat) : ''}`, M, y); y += 20;
       ctx.strokeStyle = '#ccc'; ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 40;
 
       for (let i = 0; i < appState.walls.length; i++) {
@@ -4913,22 +4952,7 @@
       if (pBreakdown) {
         if (!appState.estimate) calculateEstimate();
         const est = appState.estimate;
-        let perWallHtml = '';
-        if (est.perWall && est.perWall.length > 1) {
-          perWallHtml = est.perWall.map(pw => `
-            <div style="color:#c9ad8f; font-size:11px; padding-left:8px;">
-              ↳ <b>${escapeHTML(pw.name)}</b> (${pw.netArea.toFixed(2)} м² × ${pw.rateFinish.toLocaleString('ru-RU')} ₽): ${pw.costPanels.toLocaleString('ru-RU')} ₽${pw.costSockets > 0 ? ` + розетки ${pw.costSockets.toLocaleString('ru-RU')} ₽` : ''}
-            </div>
-          `).join('');
-        }
-        pBreakdown.innerHTML = `
-          <div>• Панели отделка (Всего: ${est.netArea.toFixed(2)} м²): <b>${est.costPanels.toLocaleString('ru-RU')} ₽</b></div>
-          ${perWallHtml}
-          <div>• Выпилы под розетки (${est.totalPosts} постов × 600 ₽): <b>${est.costSockets > 0 ? est.costSockets.toLocaleString('ru-RU') + ' ₽' : '0 ₽ (нет)'}</b></div>
-          <div>• Верхний добор: <b>${est.costDobor > 0 ? est.costDobor.toLocaleString('ru-RU') + ' ₽' : '— (не требуется)'}</b></div>
-          <div>• Доставка и занос (${appState.install === 'Самовывоз' ? 'самовывоз' : appState.lift + ', ' + appState.floor + ' эт.'}): <b>${est.costLogistics.toLocaleString('ru-RU')} ₽</b></div>
-          <div>• Профессиональный монтаж (${appState.install === 'Да + Доставка' ? 'под ключ' : 'не включен'}): <b>${est.costInstall.toLocaleString('ru-RU')} ₽</b></div>
-          ${est.discountAmount > 0 ? `<div style="color:#e08a2a;">• Скидка ${est.discountPct}%: <b>-${est.discountAmount.toLocaleString('ru-RU')} ₽</b></div>` : ''}
+        pBreakdown.innerHTML = (est.lines || []).map(l => `<div${l.accent ? ' style="color:#e08a2a;"' : ''}>• ${escapeHTML(l.label)}: <b>${estLineText(l)}</b></div>`).join('') + `
           <div style="font-weight:900; font-size:13px; color:#34d399; margin-top:3px; border-top:1px dashed #4d3219; padding-top:3px;">
             ${appState.isPriceLocked ? '🔒 ЗАФИКСИРОВАНО В ДОГОВОРЕ: ' : 'ИТОГО ПО СМЕТЕ: '} ${finalP.toLocaleString('ru-RU')} ₽
           </div>
@@ -5003,7 +5027,7 @@
                `  - Высоты (Лево/Центр/Право): ${w.hLeft} / ${w.hCenter} / ${w.hRight} мм\n` +
                `  - Монтажный зазор: -${w.gapWall} мм справа, -${w.gapTop} мм сверху\n` +
                `  - Отклонение плоскости: лево ${w.devLeft||0}мм, центр ${w.devCenter||0}мм, право ${w.devRight||0}мм\n` +
-               `  - Отделка: ${w.finish || appState.finish} (${w.baseMat || appState.baseMat}, ${w.series || appState.series})\n` +
+               `  - Отделка: ${finishLabel(w)} (${normBase(w.baseMat)})\n` +
                `  - Проемы стены:\n${openText}\n` +
                `  - Верхний добор: ${w.doborH > 0 ? (w.doborMode === 'solid' ? 'Цельные балки' : 'Шов-в-шов') + ' (' + w.doborH + ' мм)' : 'Не требуется'}`;
       }).join('\n\n');
@@ -5069,14 +5093,11 @@
              `  - Дюбеля звукоизоляционные (3 шт/пан): ${dowelsCount} шт\n` +
              `  - Акустический герметик (1 на 3 пан): ${sealantCount} тубы\n` +
              `  - Клей Момент 300г: 1 тюбик\n` +
+             `${est.lightPanels ? '  - Подсветка: лента ' + est.lightM.toFixed(1) + ' м + направляющая ' + est.lightM.toFixed(1) + ' м (' + est.lightPanels + ' пан. с 2 сторон)\n' : ''}` +
              `  - Разметка Discus: ${totalSocketsCount > 0 ? (totalSocketsCount * 3) + ' наметчиков + ' + (totalSocketsCount * 3) + ' ответных частей' : 'нет'}\n` +
              `  - Минвата в подрозетники: ${totalSocketsCount > 0 ? '1 порция 200г на заказ' : 'нет'}\n\n` +
              `5. РАСЧЕТНАЯ СМЕТА:\n` +
-             `  - Панели (${(est.netArea||0).toFixed(2)} м²): ${(est.costPanels||0).toLocaleString('ru-RU')} руб.\n` +
-             `  - Выпилы розеток (${est.totalPosts||0} постов): ${(est.costSockets||0).toLocaleString('ru-RU')} руб.\n` +
-             `  - Верхний добор: ${(est.costDobor||0).toLocaleString('ru-RU')} руб.\n` +
-             `  - Доставка и занос: ${(est.costLogistics||0).toLocaleString('ru-RU')} руб.\n` +
-             `  - Монтаж: ${(est.costInstall||0).toLocaleString('ru-RU')} руб.\n` +
+             (est.lines || []).filter(l => !/^Скидка клиенту/.test(l.label)).map(l => `  - ${l.label}: ${estLineText(l)}\n`).join('') +
              discountRow +
              `ИТОГО К ОПЛАТЕ: ${finalPrice.toLocaleString('ru-RU')} руб.\n` +
              (appState.signature ? `ПОДПИСАНО КЛИЕНТОМ: ${appState.signature.name || ''} ${formatSignDate(appState.signature.at)} (подпись в PDF наряда)\n` : `ПОДПИСЬ КЛИЕНТА: нет\n`) +
@@ -5204,7 +5225,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
               <div>Основа: <b>${escapeHTML(w.baseMat || appState.baseMat)}</b></div>
               <div>Линейка: <b>${escapeHTML(w.series || appState.series)}</b></div>
-              <div style="grid-column:1/3;">Отделка: <b style="color:#ffcf98;">${escapeHTML(w.finish || appState.finish)}</b></div>
+              <div style="grid-column:1/3;">Отделка: <b style="color:#ffcf98;">${escapeHTML(finishLabel(w))} • ${escapeHTML(normBase(w.baseMat))}</b></div>
             </div>
 
             ${specialNote ? `<div style="background:rgba(245,158,11,0.15); border:1px solid #e08a2a; border-radius:4px; padding:3px 6px; font-size:10px; color:#ffbc00; font-weight:bold;">⚠️ ${escapeHTML(specialNote)}</div>` : ''}
