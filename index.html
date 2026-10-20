@@ -712,18 +712,22 @@
               <!-- Высоты в 3-х точках (Лево, Центр, Право) -->
               <div style="border-top:1px dashed #4d3219; padding-top:8px; margin-top:2px;">
                 <span style="font-size:10px; color:#34d399; font-weight:bold; display:block; margin-bottom:4px;">ВЫСОТА от пола до потолка:</span>
+                <div style="font-size:10px; color:#c9ad8f; margin:-2px 0 6px;">Если в углу короб и лазер упирается в него — отметьте «до короба». Такая высота не уменьшит добор, а короб внесите на шаге 2.</div>
                 <div class="row" style="margin-bottom:0;">
                   <div class="col">
                     <label>Левый угол</label>
                     <input id="inHLeft" type="number" inputmode="numeric" value="2486" class="laser-input" oninput="onSizeChanged()">
+                    <label style="display:flex; gap:5px; align-items:center; margin:4px 0 0; font-size:10px; text-transform:none; color:#c9ad8f; cursor:pointer;"><input type="checkbox" id="chkHBeamL" onchange="onSizeChanged()" style="width:16px; height:16px;"> до короба</label>
                   </div>
                   <div class="col" id="boxHCenter">
                     <label>По центру</label>
                     <input id="inHCenter" type="number" inputmode="numeric" value="2488" class="laser-input" oninput="onSizeChanged()">
+                    <label style="display:flex; gap:5px; align-items:center; margin:4px 0 0; font-size:10px; text-transform:none; color:#c9ad8f; cursor:pointer;"><input type="checkbox" id="chkHBeamC" onchange="onSizeChanged()" style="width:16px; height:16px;"> до короба</label>
                   </div>
                   <div class="col" id="boxHRight">
                     <label>Правый угол</label>
                     <input id="inHRight" type="number" inputmode="numeric" value="2486" class="laser-input" oninput="onSizeChanged()">
+                    <label style="display:flex; gap:5px; align-items:center; margin:4px 0 0; font-size:10px; text-transform:none; color:#c9ad8f; cursor:pointer;"><input type="checkbox" id="chkHBeamR" onchange="onSizeChanged()" style="width:16px; height:16px;"> до короба</label>
                   </div>
                 </div>
               </div>
@@ -1798,6 +1802,7 @@
       appState.hLeft = w.hLeft;
       appState.hCenter = w.hCenter;
       appState.hRight = w.hRight;
+      appState.hBeam = w.hBeam || {};
       appState.devLeft = w.devLeft;
       appState.devCenter = w.devCenter;
       appState.devRight = w.devRight;
@@ -1834,6 +1839,7 @@
       w.hLeft = appState.hLeft;
       w.hCenter = appState.hCenter;
       w.hRight = appState.hRight;
+      w.hBeam = appState.hBeam || {};
       w.devLeft = appState.devLeft;
       w.devCenter = appState.devCenter;
       w.devRight = appState.devRight;
@@ -2803,6 +2809,7 @@
       document.getElementById('inHLeft').value = (w.hLeft ?? '');
       document.getElementById('inHCenter').value = (w.hCenter ?? '');
       document.getElementById('inHRight').value = (w.hRight ?? '');
+      ['L', 'C', 'R'].forEach(k => { const el = document.getElementById('chkHBeam' + k); if (el) el.checked = !!(w.hBeam || {})[k]; });
 
       document.getElementById('inDevLeft').value = w.devLeft !== undefined ? w.devLeft : 0;
       document.getElementById('inDevCenter').value = w.devCenter !== undefined ? w.devCenter : 0;
@@ -2975,7 +2982,12 @@
 
       // Минимальные габариты стены минус зазоры
       const minW = Math.min(appState.wTop, appState.wMid, appState.wBot);
-      const minH = Math.min(appState.hLeft, appState.hCenter, appState.hRight);
+      // Высоты «до короба» не определяют высоту стены (добор считаем до потолка)
+      const hb = { L: !!(document.getElementById('chkHBeamL') || {}).checked, C: !!(document.getElementById('chkHBeamC') || {}).checked, R: !!(document.getElementById('chkHBeamR') || {}).checked };
+      appState.hBeam = hb;
+      let ceilHs = [[appState.hLeft, hb.L], [appState.hCenter, hb.C], [appState.hRight, hb.R]].filter(x => !x[1]).map(x => x[0]);
+      if (!ceilHs.length) ceilHs = [appState.hLeft, appState.hCenter, appState.hRight];
+      const minH = Math.min(...ceilHs);
 
       appState.cleanW = Math.max(400, minW - appState.gapWall);
       appState.cleanH = Math.max(1000, minH - appState.gapTop);
@@ -2999,7 +3011,7 @@
       const maxDev = Math.max(Math.abs(appState.devLeft), Math.abs(appState.devCenter), Math.abs(appState.devRight));
       let devText = maxDev > 2 ? ` Горб ${maxDev} мм — нужны подкладки под каркас.` : '';
 
-      const hs = [appState.hLeft, appState.hCenter, appState.hRight].filter(v => v);
+      const hs = ceilHs.filter(v => v);
       const diffH = Math.max(...hs) - Math.min(...hs);
       if (diffW > SUSPECT_DIFF || diffH > SUSPECT_DIFF) {
         bBadge.className = "badge badge-red";
@@ -3918,13 +3930,27 @@
           });
         } else {
           (wObj.panels || []).filter(p => !p.yFloor && p.h >= (wObj.maxPanelH || 2440)).forEach(p => {
-            doborPieces(wObj, p.startX, p.startX + p.w).forEach(pc => {
-              const px = padLeft + pc.x0 * scale, pw = (pc.x1 - pc.x0) * scale;
-              const ph = Math.max(pc.h * scale, 10), py = wallTopY + Math.max(doborH_px, 10) - ph;
-              svg += `
-              <rect x="${px}" y="${py}" width="${Math.max(1, pw - 1)}" height="${ph}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" rx="1.5"/>
-              ${pw >= 24 ? `<text x="${px + pw/2}" y="${py + ph/2 + 2.5}" fill="#ffbc00" font-size="${pw >= 40 ? 7 : 5.5}" font-weight="bold" text-anchor="middle">${pc.x1 - pc.x0}×${pc.h}</text>` : ''}`;
+            // Один кусок на панель; если над ним короб — кусок со ступенькой (вырезом), а не отдельные полоски
+            const pcs = doborPieces(wObj, p.startX, p.startX + p.w);
+            if (!pcs.length) return;
+            const bottomY = wallTopY + Math.max(doborH_px, 10);
+            const X0 = pcs[0].x0, X1 = pcs[pcs.length - 1].x1, Hmax = Math.max(...pcs.map(pc => pc.h));
+            let d = `M ${padLeft + X0 * scale} ${bottomY}`;
+            pcs.forEach(pc => {
+              const yy = bottomY - Math.max(pc.h * scale, 4);
+              d += ` L ${padLeft + pc.x0 * scale} ${yy} L ${padLeft + pc.x1 * scale - 1} ${yy}`;
             });
+            d += ` L ${padLeft + X1 * scale - 1} ${bottomY} Z`;
+            const notch = pcs.filter(pc => pc.h < Hmax);
+            const nW = notch.reduce((s, pc) => s + (pc.x1 - pc.x0), 0), nH = notch.length ? Hmax - Math.min(...notch.map(pc => pc.h)) : 0;
+            const pw = (X1 - X0) * scale, ph = Math.max(Hmax * scale, 10);
+            const cx = padLeft + X0 * scale + pw / 2, cy = bottomY - Math.min(ph, Math.max(...pcs.map(pc => pc.h)) * scale) / 2;
+            svg += `<path d="${d}" fill="rgba(224, 138, 42, 0.25)" stroke="#e08a2a" stroke-width="1.2" stroke-linejoin="round"/>`;
+            if (pw >= 24) {
+              const lowY = bottomY - Math.min(...pcs.map(pc => pc.h)) * scale / 2;
+              svg += `<text x="${cx}" y="${(nW ? lowY : cy) + 2.5}" fill="#ffbc00" font-size="${pw >= 40 ? 7 : 5.5}" font-weight="bold" text-anchor="middle">${X1 - X0}×${Hmax}</text>`;
+              if (nW && pw >= 40) svg += `<text x="${cx}" y="${lowY + 9}" fill="#e08a2a" font-size="5.5" text-anchor="middle">вырез ${nW}×${nH}</text>`;
+            }
           });
         }
       }
@@ -4292,7 +4318,7 @@
       ensureOrderWalls(appState);
       syncAppStateToCurWall();
       const core = {
-        walls: appState.walls.map(w => ({ d: [w.wTop, w.wMid, w.wBot, w.hLeft, w.hCenter, w.hRight, w.gapWall, w.gapTop, w.stdPanelW, w.doborMode],
+        walls: appState.walls.map(w => ({ d: [w.wTop, w.wMid, w.wBot, w.hLeft, w.hCenter, w.hRight, JSON.stringify(w.hBeam || {}), w.gapWall, w.gapTop, w.stdPanelW, w.doborMode],
           o: (w.openings || []).map(o => [o.type, o.xWall, o.w, o.h, o.yFloor || 0]),
           s: (w.sockets || []).map(x => [x.xWall, x.yWall, x.posts, x.type]),
           e: (w.embeds || []).map(x => [x.xWall, x.wZone, x.yWall]),
@@ -5098,7 +5124,7 @@
         return `${wTitle}` +
                `  - Рабочий габарит: ${w.cleanW} × ${w.cleanH} мм (Клин: ${diffW} мм)\n` +
                `  - Ширины (Верх/Центр/Низ): ${w.wTop} / ${w.wMid} / ${w.wBot} мм\n` +
-               `  - Высоты (Лево/Центр/Право): ${w.hLeft} / ${w.hCenter} / ${w.hRight} мм\n` +
+               `  - Высоты (Лево/Центр/Право): ${w.hLeft}${(w.hBeam || {}).L ? ' (до короба)' : ''} / ${w.hCenter}${(w.hBeam || {}).C ? ' (до короба)' : ''} / ${w.hRight}${(w.hBeam || {}).R ? ' (до короба)' : ''} мм\n` +
                `  - Монтажный зазор: -${w.gapWall} мм справа, -${w.gapTop} мм сверху\n` +
                `  - Отклонение плоскости: лево ${w.devLeft||0}мм, центр ${w.devCenter||0}мм, право ${w.devRight||0}мм\n` +
                `  - Отделка: ${finishLabel(w)} (${normBase(w.baseMat)})\n` +
