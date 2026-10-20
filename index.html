@@ -1094,6 +1094,15 @@
               <div id="lblLightSum" style="font-size:11px; color:#ffcf98; margin-top:6px; font-weight:700;"></div>
             </div>
 
+            <div style="margin-bottom:10px;">
+              <label>Боковой добор (остаток по ширине)</label>
+              <select id="inSideDobor" onchange="onSideDoborChanged()">
+                <option value="right">Один, справа</option>
+                <option value="left">Один, слева</option>
+                <option value="both">Два одинаковых, с двух сторон</option>
+              </select>
+            </div>
+
             <!-- Выбор клиента по верхнему добору -->
             <div style="margin-top:4px;">
               <label>Верхний добор (только если стена выше 2440 мм):</label>
@@ -1831,6 +1840,7 @@
       appState.panels = w.panels;
       appState.layoutShift = w.layoutShift || 0;
       appState.sockNoMove = !!w.sockNoMove;
+      appState.sideDobor = w.sideDobor || 'right';
     }
 
     function syncAppStateToCurWall() {
@@ -1868,6 +1878,7 @@
       w.panels = appState.panels;
       w.layoutShift = appState.layoutShift || 0;
       w.sockNoMove = !!appState.sockNoMove;
+      w.sideDobor = appState.sideDobor || 'right';
     }
 
     // Текущее состояние приложения
@@ -2835,6 +2846,7 @@
       document.getElementById('inBase').value = w.baseMat;
       document.getElementById('inFinish').value = w.finish;
       const inDes = document.getElementById('inDesign'); if (inDes) inDes.value = w.designName || '';
+      const inSD = document.getElementById('inSideDobor'); if (inSD) inSD.value = w.sideDobor || 'right';
 
       toggleMeasureMode(w.measureMode || 9, false);
       renderOpeningsList();
@@ -3463,10 +3475,20 @@
       let curX = 0;
 
       // Сдвиг раскладки: первая панель у левой стены делается узкой, чтобы швы ушли от розеток
-      const shift = Math.round(appState.layoutShift || 0);
+      // Сдвиг раскладки: старый автосдвиг — только при «розетки переносить нельзя»;
+      // иначе — по выбору бокового добора (справа / слева / поровну с двух сторон)
+      let shift = 0;
+      if (appState.sockNoMove) shift = Math.round(appState.layoutShift || 0);
+      else {
+        const rem = cleanW % stdW;
+        const sd = appState.sideDobor || 'right';
+        if (rem > 0 && sd === 'left') shift = rem;
+        else if (rem > 0 && sd === 'both') shift = Math.round(rem / 2);
+        appState.layoutShift = 0;
+      }
       if (shift > 0 && shift < cleanW && (!openings.length || openings[0].xWall >= shift)) {
         panels.push({ id: pid++, startX: 0, endX: shift, w: shift, h: mainH, yFloor: 0,
-          type: 'Пристенок (сдвиг)', isDobor: false, isDoorOverhead: false });
+          type: appState.sockNoMove ? 'Пристенок (сдвиг)' : 'Боковой добор (лев.)', isDobor: false, isDoorOverhead: false });
         curX = shift;
       }
 
@@ -3670,6 +3692,13 @@
     }
 
     // Подбор сдвига раскладки, при котором все выпилы отходят от швов на 40+ мм
+    function onSideDoborChanged() {
+      appState.sideDobor = document.getElementById('inSideDobor').value;
+      autoDivideWall();
+      syncAppStateToCurWall();
+      saveActiveDraft();
+    }
+
     function onSockNoMoveChanged() {
       const chk = document.getElementById('chkSockNoMove');
       appState.sockNoMove = !!(chk && chk.checked);
