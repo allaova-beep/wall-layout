@@ -913,10 +913,14 @@
 
             <div id="lstSockets" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
             <div id="boxSeamStep2" style="display:none; margin-top:8px; padding:10px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-size:12px; font-weight:700;">
-              🚨 Есть розетки ближе 40 мм к шву панелей.
+              🚨 Есть розетки ближе 40 мм к шву панелей, перенести их не получилось.
               <button class="btn btn-amber" style="margin-top:8px; height:46px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
             </div>
             <div id="boxShiftStep2" style="display:none; margin-top:8px; font-size:12px; color:#c9ad8f;"></div>
+            <label style="display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:12px; color:#c9ad8f; cursor:pointer;">
+              <input type="checkbox" id="chkSockNoMove" onchange="onSockNoMoveChanged()" style="width:20px; height:20px; margin-top:1px; flex-shrink:0;">
+              <span>Розетки переносить нельзя — вместо этого сдвигать раскладку панелей</span>
+            </label>
           </div>
 
         </div>
@@ -1667,6 +1671,7 @@
       appState.photos = w.photos;
       appState.panels = w.panels;
       appState.layoutShift = w.layoutShift || 0;
+      appState.sockNoMove = !!w.sockNoMove;
     }
 
     function syncAppStateToCurWall() {
@@ -1698,6 +1703,7 @@
       w.photos = appState.photos;
       w.panels = appState.panels;
       w.layoutShift = appState.layoutShift || 0;
+      w.sockNoMove = !!appState.sockNoMove;
     }
 
     // Текущее состояние приложения
@@ -3415,6 +3421,40 @@
       return (s.localX - half) < SEAM_MIN || (p.w - s.localX - half) < SEAM_MIN;
     }
 
+    // Перенос розетки (правило Олега): раскладка стандартная от угла, а розетку,
+    // попавшую ближе 40 мм к шву, электрик переносит на ближайшее место,
+    // где выпил целиком на одной панели с запасом 40 мм с обеих сторон.
+    function sockFinalX(s) { return s.xWall + (s.moveDx || 0); }
+    function sockMoveText(s) {
+      const d = s && s.moveDx ? Math.round(s.moveDx) : 0;
+      if (!d) return '';
+      return `↔ перенести на ${Math.abs(d)} мм ${d > 0 ? 'вправо' : 'влево'}`;
+    }
+    function sockMoveShort(s) {
+      const d = s && s.moveDx ? Math.round(s.moveDx) : 0;
+      return d ? `${d > 0 ? '→' : '←'} ${Math.abs(d)} мм` : '';
+    }
+    function findSocketMove(s, panels, openings) {
+      const half = sockCutout(s).w / 2;
+      let best = null;
+      panels.forEach(q => {
+        const y0 = q.yFloor || 0;
+        if (s.yWall < y0 || s.yWall > y0 + q.h) return;
+        const lo = Math.ceil(q.startX + SEAM_MIN + half);
+        const hi = Math.floor(q.endX - SEAM_MIN - half);
+        if (lo > hi) return;
+        const target = Math.min(hi, Math.max(lo, s.xWall));
+        const inOp = (openings || []).some(op => {
+          const oy = op.yFloor || 0;
+          return target + half > op.xWall && target - half < op.xWall + op.w && s.yWall >= oy && s.yWall <= oy + op.h;
+        });
+        if (inOp) return;
+        const dist = Math.abs(target - s.xWall);
+        if (!best || dist < best.dist) best = { dist, target, panel: q };
+      });
+      return best;
+    }
+
     function countSeamConflicts() {
       return (appState.sockets || []).filter(s => {
         if (s.inOpening) return false;
@@ -3424,7 +3464,19 @@
     }
 
     // Подбор сдвига раскладки, при котором все выпилы отходят от швов на 40+ мм
+    function onSockNoMoveChanged() {
+      const chk = document.getElementById('chkSockNoMove');
+      appState.sockNoMove = !!(chk && chk.checked);
+      // Переносим розетки — значит раскладка снова стандартная от угла
+      if (!appState.sockNoMove) appState.layoutShift = 0;
+      autoDivideWall();
+      syncAppStateToCurWall();
+      saveActiveDraft();
+    }
+
     function autoShiftLayout() {
+      // Сдвиг раскладки нужен, только если розетки переносить нельзя
+      appState.sockNoMove = true;
       const stdW = appState.stdPanelW || 607;
       const prev = appState.layoutShift || 0;
       let best = null;
@@ -3466,7 +3518,9 @@
       let openingCollision = false;
       const openings = appState.openings || [];
 
+      let movedCount = 0;
       appState.sockets.forEach(s => {
+        s.moveDx = 0;
         // 1. Проверяем попадание розетки внутрь любого дверного или оконного проёма
         const hitOp = openings.find(op => {
           const opFloorY = op.yFloor || 0;
@@ -3512,6 +3566,18 @@
           s.localH = Math.max(0, s.yWall - (matchedPanel.yFloor || 0));
 
           // ПРАВИЛО ЦЕХА: Расстояние от выпила до шва не ближе 40 мм С ОБЕИХ СТОРОН!
+          // По умолчанию розетку переносим (раскладка не трогается); галочка «переносить нельзя» — старый автосдвиг раскладки
+          if (sockNearSeam(s, matchedPanel) && !appState.sockNoMove) {
+            const mv = findSocketMove(s, appState.panels, openings);
+            if (mv) {
+              s.moveDx = mv.target - s.xWall;
+              s.panelId = mv.panel.id;
+              s.localX = Math.round(mv.target - mv.panel.startX);
+              s.localH = Math.max(0, s.yWall - (mv.panel.yFloor || 0));
+              matchedPanel = mv.panel;
+              movedCount++;
+            }
+          }
           if (sockNearSeam(s, matchedPanel)) {
             seamCollision = true;
           }
@@ -3528,9 +3594,14 @@
       const bs = document.getElementById('boxShiftStep2');
       if (bs) {
         const sh = appState.layoutShift || 0;
-        bs.style.display = sh ? 'block' : 'none';
-        bs.innerHTML = sh ? `↔ Раскладка сдвинута: у левой стены узкая панель ${sh} мм. <a href="#" style="color:#ffcf98;" onclick="resetLayoutShift(); return false;">Сбросить</a>` : '';
+        const parts = [];
+        if (sh) parts.push(`↔ Раскладка сдвинута: у левой стены узкая панель ${sh} мм. <a href="#" style="color:#ffcf98;" onclick="resetLayoutShift(); return false;">Сбросить</a>`);
+        if (movedCount) parts.push(`↔ Розеток у шва: ${movedCount}. Раскладка стандартная, розетки перенесены (см. стрелки на чертеже и в наряде).`);
+        bs.style.display = parts.length ? 'block' : 'none';
+        bs.innerHTML = parts.join('<br>');
       }
+      const chkNm = document.getElementById('chkSockNoMove');
+      if (chkNm) chkNm.checked = !!appState.sockNoMove;
       document.getElementById('boxOpeningCollision').style.display = openingCollision ? 'block' : 'none';
 
       const lst = document.getElementById('lstSockets');
@@ -3554,6 +3625,7 @@
             <span style="color:${s.type.includes('Выключатель') ? '#a78bfa' : '#ffcf98'}; font-weight:bold;">${escapeHTML(s.type)}</span>: ${s.refDist} мм от ${s.refEdge === 'left' ? 'левого' : 'правого'} угла, ${s.yWall} мм от пола
             <span style="color:#c9ad8f; font-size:10px;">(${panelDesc})</span>
             ${isNearSeam ? '<span style="color:#f87171; font-weight:bold; margin-left:4px;">⚠️ шов &lt;40мм!</span>' : ''}
+            ${s.moveDx ? `<span style="color:#fbbf24; font-weight:bold; margin-left:4px;">${sockMoveText(s)}</span>` : ''}
             ${isHitOp ? '<span style="color:#ef4444; font-weight:bold; margin-left:4px;">🚨 в проёме!</span>' : ''}
           </div>
           <button onclick="removeSmartSocket(${idx})" style="min-width:38px; min-height:38px; padding:6px 12px; display:inline-flex; align-items:center; justify-content:center; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-weight:bold; font-size:15px; cursor:pointer;" title="Удалить розетку">🗑️</button>
@@ -3696,8 +3768,10 @@
       // 6. Отрисовка розеток (включая розетки с коллизиями!)
       const sockets = wObj.sockets || [];
       sockets.forEach(s => {
-        const sx = padLeft + (s.xWall * scale);
+        const sx = padLeft + (sockFinalX(s) * scale);
+        const sx0 = padLeft + (s.xWall * scale);
         const sy = floorY - (s.yWall * scale);
+        const isMoved = !!s.moveDx && !s.inOpening;
 
         const p = (wObj.panels || []).find(pan => pan.id === s.panelId);
         const isNearSeam = sockNearSeam(s, p);
@@ -3715,6 +3789,10 @@
           badgeColor = '#ef4444';
           badgeStroke = '#fca5a5';
           badgeText = `⚠️ Шов ${s.localX}мм!`;
+        } else if (isMoved) {
+          badgeColor = '#d97706';
+          badgeStroke = '#fbbf24';
+          badgeText = sockMoveShort(s);
         }
 
         const co = sockCutout(s);
@@ -3727,6 +3805,20 @@
         }
         const ly = sy - rr - 13;
         const lw = Math.max(48, co.n * pitchPx + 8);
+        if (isMoved) {
+          // Где розетка сейчас (пунктир) и куда её перенести (стрелка)
+          let ghost = '';
+          for (let i = 0; i < co.n; i++) {
+            ghost += `<circle cx="${sx0 - ((co.n - 1) * pitchPx) / 2 + i * pitchPx}" cy="${sy}" r="${rr}" fill="none" stroke="#d97706" stroke-width="0.8" stroke-dasharray="1.5,1.2"/>`;
+          }
+          const ay = sy + rr + 4;
+          const dir = sx > sx0 ? 1 : -1;
+          svg += `<g pointer-events="none">${ghost}
+            <line x1="${sx0}" y1="${ay}" x2="${sx}" y2="${ay}" stroke="#d97706" stroke-width="0.9"/>
+            <path d="M ${sx} ${ay} l ${-3 * dir} -1.8 l 0 3.6 z" fill="#d97706"/>
+            <text x="${(sx + sx0) / 2}" y="${ay + 7}" fill="#d97706" font-size="5.5" font-weight="bold" text-anchor="middle">перенести ${Math.abs(Math.round(s.moveDx))} мм</text>
+          </g>`;
+        }
         svg += `
           <g data-sock="${s.id}" style="cursor:pointer" onclick="event.stopPropagation(); showSocketInfo(${s.id})">
             <rect x="${sx - lw / 2 - 4}" y="${sy - rr - 16}" width="${lw + 8}" height="${rr * 2 + 20}" fill="transparent"/>
@@ -3767,8 +3859,12 @@
       let html = `<div style="font-weight:800;font-size:15px;margin-bottom:6px;">${escapeHTML(so.type)} · ${co.n === 1 ? '1 пост' : co.n + ' поста'}</div>`;
       html += row('От пола (до центра)', so.yWall + ' мм');
       if (cleanH) html += row('От потолка (до центра)', Math.max(0, cleanH - so.yWall) + ' мм');
-      html += row('От левого угла (до центра)', Math.round(so.xWall) + ' мм');
-      html += row('От правого угла (до центра)', Math.max(0, Math.round(cleanW - so.xWall)) + ' мм');
+      const fx = sockFinalX(so);
+      if (so.moveDx) {
+        html += `<div style="margin:4px 0 6px;padding:8px 10px;border-radius:10px;background:rgba(217,119,6,.15);border:1px solid #d97706;font-weight:800;">${sockMoveText(so)}<div style="font-weight:600;font-size:12px;margin-top:3px;">Сейчас вывод в ${Math.round(so.xWall)} мм от левого угла — у шва. Ниже размеры уже на новом месте.</div></div>`;
+      }
+      html += row('От левого угла (до центра)', Math.round(fx) + ' мм');
+      html += row('От правого угла (до центра)', Math.max(0, Math.round(cleanW - fx)) + ' мм');
       if (p && so.localX != null) {
         html += row('Панель', '№' + p.id + (p.w ? ' (ширина ' + p.w + ' мм)' : ''));
         html += row('От левого края панели (до центра)', so.localX + ' мм');
@@ -3845,7 +3941,7 @@
 
         wallPanels.forEach(p => {
           const socks = wallSockets.filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join('; ');
+          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
           const tr = document.createElement('tr');
 
           let dimText = `${p.h} × ${p.w}`;
@@ -3920,7 +4016,7 @@
         const wallName = w.name || `Стена ${wIdx + 1}`;
         (w.panels || []).forEach(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join(' | ');
+          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | ');
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
           csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${w.finish || appState.finish}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
@@ -4413,7 +4509,7 @@
       if (mainTop < H - 2) { x.beginPath(); x.moveTo(0, yTop(mainTop)); x.lineTo(c.width, yTop(mainTop)); x.stroke(); }
       (appState.sockets || []).forEach(s => {
         if (s.inOpening) return;
-        const cut = sockCutout(s), cx = s.xWall * k, cy = yTop(s.yWall);
+        const cut = sockCutout(s), cx = sockFinalX(s) * k, cy = yTop(s.yWall);
         x.fillStyle = '#f1f1ef'; x.strokeStyle = 'rgba(0,0,0,0.4)'; x.lineWidth = 1;
         const fw = (cut.w + 18) * k, fh = (cut.h + 18) * k;
         x.fillRect(cx - fw / 2, cy - fh / 2, fw, fh); x.strokeRect(cx - fw / 2, cy - fh / 2, fw, fh);
@@ -4659,7 +4755,7 @@
         }
         wPanels.forEach(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `Выпил В:${s.localH} П:${s.localX} [${s.type}]`).join('; ');
+          const sockText = socks.map(s => `Выпил В:${s.localH} П:${s.localX} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
           const d = document.createElement('div');
           let note = p.type;
           let dimStr = `${p.h}×${p.w} мм`;
@@ -4787,7 +4883,7 @@
         const wHeader = walls.length > 1 ? `[${w.name || `Стена ${idx + 1}`}]\n` : '';
         const lines = wPanels.map(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]`).join('; ');
+          const sockText = socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
           let extra = p.isDobor ? ` (заготовка ${p.blankW}мм, клин +${diffW}мм)` : '';
           return `  • ${wPrefix}№${p.id}: ${p.h}×${p.w} мм${extra} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
         }).join('\n');
@@ -4800,7 +4896,7 @@
         const wPrefix = walls.length > 1 ? `С${idx + 1}-` : '';
         const wHeader = walls.length > 1 ? `[${w.name || `Стена ${idx + 1}`}]\n` : '';
         const lines = wSocks.map(s => 
-          `  • Панель ${wPrefix}№${s.panelId}: центр В=${s.localH}мм, П=${s.localX}мм, выпил ${sockCutout(s).text} [${s.type}]`
+          `  • Панель ${wPrefix}№${s.panelId}: центр В=${s.localH}мм, П=${s.localX}мм, выпил ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' — ЭЛЕКТРИКУ: ' + sockMoveText(s) : ''}`
         ).join('\n');
         return wHeader + lines;
       }).filter(Boolean).join('\n\n');
@@ -4919,7 +5015,7 @@
           if (socks.length > 0) {
             socksHtml = socks.map(s => `
               <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:4px; padding:3px 6px; font-size:10px; color:#fca5a5; font-weight:700; margin-top:2px;">
-                🔴 ВЫПИЛ ПОД РОЗЕТКУ: В=${s.localH} мм (от низа детали), П=${s.localX} мм (от лев. края), центр • выпил ${sockCutout(s).text}
+                🔴 ВЫПИЛ ПОД РОЗЕТКУ: В=${s.localH} мм (от низа детали), П=${s.localX} мм (от лев. края), центр • выпил ${sockCutout(s).text}${s.moveDx ? ' • ' + sockMoveText(s) : ''}
               </div>
             `).join('');
           }
