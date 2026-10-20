@@ -304,7 +304,8 @@
     #mdTitle { flex:1; font-weight:800; font-size:14px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     #mdInfo { padding:6px 12px; font-size:12px; color:#c9ad8f; }
     #mdBody { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; padding:8px; }
-    #mdCanvas svg { width:100% !important; height:auto !important; display:block; }
+    #mdCanvas svg { width:100% !important; height:auto !important; max-height:none !important; display:block; }
+    #mdCanvas { margin:0 auto; max-width:calc((100vh - 130px) * 1.25 * var(--mdz, 1)); }
 
     /* ТЕЛЕФОН: компактно, одна колонка, навигация внизу */
     @media (max-width: 700px) {
@@ -5341,10 +5342,13 @@
       const c = document.getElementById('mdCanvas');
       c.innerHTML = src ? src.innerHTML : '';
       c.style.width = (drawingScale * 100) + '%';
+      c.style.setProperty('--mdz', drawingScale);
     }
     function drawingZoom(d) {
       drawingScale = Math.min(4, Math.max(1, drawingScale + d * 0.5));
-      document.getElementById('mdCanvas').style.width = (drawingScale * 100) + '%';
+      const c = document.getElementById('mdCanvas');
+      c.style.width = (drawingScale * 100) + '%';
+      c.style.setProperty('--mdz', drawingScale);
     }
     function drawingWall(d) {
       const n = appState.walls.length;
