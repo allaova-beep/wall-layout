@@ -1068,6 +1068,20 @@
             </div>
 
             <div style="margin-bottom:10px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
+              <div style="font-weight:700; color:#fff; font-size:12px;">🎨 Другая отделка у части панелей</div>
+              <div style="font-size:11px; color:#c9ad8f; margin:2px 0 8px;">По умолчанию все панели в отделке выше. Выберите другую отделку и нажмите номера панелей. Повторное нажатие вернёт основную.</div>
+              <select id="inAltFinish" style="margin-bottom:8px;">
+                <option value="Рогожка">Рогожка (ткань)</option>
+                <option value="Ткань с запечаткой">Ткань с запечаткой</option>
+                <option value="Эко-кожа">Эко-кожа</option>
+                <option value="Натуральная кожа">Натуральная кожа</option>
+                <option value="Рейки" selected>Рейки</option>
+                <option value="Мох">Мох</option>
+              </select>
+              <div id="boxFinishChips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            </div>
+
+            <div style="margin-bottom:10px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
               <div style="font-weight:700; color:#fff; font-size:12px;">💡 Подсветка — какие панели</div>
               <div style="font-size:11px; color:#c9ad8f; margin:2px 0 8px;">Лента идёт вертикально с двух сторон панели на всю высоту (с добором). Нажмите номера панелей.</div>
               <div id="boxLightChips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
@@ -1525,6 +1539,23 @@
       const f = normFinish(w.finish);
       return f + (w.designName ? ` «${w.designName}»` : '');
     }
+    // Своя отделка у отдельных панелей (по умолчанию — отделка стены)
+    function panelFinishOf(w, p) {
+      const pf = (w.panelFinish || {})[p.id];
+      return normFinish(pf || w.finish);
+    }
+    function panelHasOwnFinish(w, p) {
+      const pf = (w.panelFinish || {})[p.id];
+      return !!pf && normFinish(pf) !== normFinish(w.finish);
+    }
+    // Доли площади по отделкам: веса = площадь деталей (без верхнего добора — он идёт пропорционально)
+    function wallFinishShares(w) {
+      const acc = {}; let tot = 0;
+      (w.panels || []).forEach(p => { const a = (p.w || 0) * (p.h || 0); const f = panelFinishOf(w, p); acc[f] = (acc[f] || 0) + a; tot += a; });
+      if (!tot) return [{ finish: normFinish(w.finish), share: 1 }];
+      return Object.keys(acc).map(f => ({ finish: f, share: acc[f] / tot }))
+        .sort((a, b) => (a.finish === normFinish(w.finish) ? -1 : 0) - (b.finish === normFinish(w.finish) ? -1 : 0));
+    }
     function wallLightMeters(w) {
       const ids = new Set(w.lightPanels || []);
       const n = (w.panels || []).filter(p => ids.has(p.id) && !p.yFloor).length;
@@ -1707,6 +1738,7 @@
         embeds: [],
         designName: '',
         lightPanels: [],
+        panelFinish: {},
         photos: [],
         panels: []
       };
@@ -1787,6 +1819,7 @@
       appState.embeds = w.embeds || (w.embeds = []);
       appState.designName = w.designName || '';
       appState.lightPanels = w.lightPanels || (w.lightPanels = []);
+      appState.panelFinish = w.panelFinish || (w.panelFinish = {});
       appState.photos = w.photos;
       appState.panels = w.panels;
       appState.layoutShift = w.layoutShift || 0;
@@ -1822,6 +1855,7 @@
       w.embeds = appState.embeds || [];
       w.designName = appState.designName || '';
       w.lightPanels = appState.lightPanels || [];
+      w.panelFinish = appState.panelFinish || {};
       w.photos = appState.photos;
       w.panels = appState.panels;
       w.layoutShift = appState.layoutShift || 0;
@@ -3068,9 +3102,15 @@
         const opArea = calculateOpeningsUnionArea(w.openings || []);
         const net = Math.max(0, gross - opArea);
         const fin = normFinish(w.finish), bi = baseIdx(w.baseMat);
+        const shares = wallFinishShares(w);
+        const parts = shares.map(sh => {
+          const r = PRICE_TABLE[sh.finish][bi];
+          const a = net * sh.share, c = a / PRICE.panelM2;
+          return { finish: sh.finish, area: a, count: c, rate: r, cost: Math.round(c * r) };
+        });
         const rate = PRICE_TABLE[fin][bi];
         const count = net / PRICE.panelM2;
-        const costP = Math.round(count * rate);
+        const costP = parts.reduce((s, x) => s + x.cost, 0);
         const kits = socketKits(w);
         const lt = wallLightMeters(w);
         totalGrossArea += gross; totalOpeningsArea += opArea; totalNetArea += net;
@@ -3078,7 +3118,7 @@
         totalLightM += lt.m; totalLightPanels += lt.n;
         return { wall: w, name: w.name || `Стена ${idx + 1}`, grossArea: gross, openingsArea: opArea, netArea: net,
                  panelCount: count, rateFinish: rate, finishLabel: finishLabel(w), thickness: ['50', '65', '70'][bi],
-                 costPanels: costP, kits, lightM: lt.m, lightPanels: lt.n };
+                 costPanels: costP, kits, lightM: lt.m, lightPanels: lt.n, parts };
       });
 
       const costSockets = totalKits * PRICE.socketKit;
@@ -3103,7 +3143,10 @@
       // Строки сметы — одни и те же для экрана, наряда и сообщения в цех
       const lines = [];
       wallsSummary.forEach(ws => {
-        lines.push({ label: `${wallsSummary.length > 1 ? ws.name + ': ' : ''}Панели ${ws.thickness} мм, ${ws.finishLabel} — ${ws.netArea.toFixed(2)} м² = ${ws.panelCount.toFixed(2)} пан. × ${fmt(ws.rateFinish)} ₽`, amount: ws.costPanels });
+        ws.parts.forEach((pt, i) => {
+          const lbl = i === 0 && pt.finish === normFinish(ws.wall.finish) ? ws.finishLabel : pt.finish;
+          lines.push({ label: `${wallsSummary.length > 1 ? ws.name + ': ' : ''}Панели ${ws.thickness} мм, ${lbl} — ${pt.area.toFixed(2)} м² = ${pt.count.toFixed(2)} пан. × ${fmt(pt.rate)} ₽`, amount: pt.cost });
+        });
       });
       if (totalKits) lines.push({ label: `Розетки: комплект на 2 поста × ${totalKits}`, amount: costSockets });
       if (totalLightPanels) lines.push({ label: `Подсветка: ${totalLightPanels} пан., ${totalLightM.toFixed(1)} м ленты × ${fmt(PRICE.lightKit / PRICE.lightKitM)} ₽/м`, amount: costLights });
@@ -3177,7 +3220,32 @@
       saveActiveDraft();
     }
 
+    function togglePanelFinish(id) {
+      const alt = normFinish(document.getElementById('inAltFinish').value);
+      const map = Object.assign({}, appState.panelFinish || {});
+      if (map[id] && normFinish(map[id]) === alt) delete map[id];
+      else if (alt === normFinish(appState.finish)) delete map[id];
+      else map[id] = alt;
+      appState.panelFinish = map;
+      syncAppStateToCurWall();
+      calculateEstimate();
+      renderSvgBlueprint();
+      renderTablesAndStock();
+      saveActiveDraft();
+    }
+    function renderFinishChips() {
+      const box = document.getElementById('boxFinishChips');
+      if (!box) return;
+      const w = getActiveWall();
+      const panels = appState.panels || [];
+      box.innerHTML = panels.length ? panels.map(p => {
+        const own = panelHasOwnFinish(w, p);
+        return `<button type="button" onclick="togglePanelFinish(${p.id})" style="min-width:46px; min-height:40px; padding:2px 8px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; line-height:1.1; border:2px solid ${own ? '#7c3aed' : '#4d3219'}; background:${own ? '#7c3aed' : 'transparent'}; color:${own ? '#fff' : '#c9ad8f'};">№${p.id}${own ? '<br><span style="font-size:9px; font-weight:600;">' + escapeHTML(panelFinishOf(w, p)) + '</span>' : ''}</button>`;
+      }).join('') : '<span style="font-size:11px; color:#9a7a5c;">Сначала замер стены</span>';
+    }
+
     function renderLightChips() {
+      try { renderFinishChips(); } catch (e) {}
       const box = document.getElementById('boxLightChips');
       if (!box) return;
       const ids = new Set(appState.lightPanels || []);
@@ -3617,6 +3685,7 @@
     }
     function embedText(w, p) {
       const parts = panelEmbeds(w, p).map(e => `Закладная В=${e.yWall - (p.yFloor || 0)} [${e.type}]`);
+      if (panelHasOwnFinish(w, p)) parts.push('ОТДЕЛКА: ' + panelFinishOf(w, p));
       if ((w.lightPanels || []).includes(p.id) && !p.yFloor) parts.push('Подсветка с 2 сторон');
       return parts.join('; ');
     }
@@ -3872,8 +3941,12 @@
         const fillColor = isDobor ? 'rgba(224, 138, 42, 0.18)' : (isOverhead ? 'rgba(224, 138, 42, 0.22)' : 'rgba(255, 207, 152, 0.16)');
         const strokeColor = (isDobor || isOverhead) ? '#e08a2a' : '#ffcf98';
 
+        const ownFin = panelHasOwnFinish(wObj, p);
         svg += `<g>`;
-        svg += `<rect x="${px}" y="${py}" width="${Math.max(1, pw - 1.2)}" height="${Math.max(2, panelH)}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.2" rx="1.5"/>`;
+        svg += `<rect x="${px}" y="${py}" width="${Math.max(1, pw - 1.2)}" height="${Math.max(2, panelH)}" fill="${ownFin ? 'rgba(124, 58, 237, 0.16)' : fillColor}" stroke="${strokeColor}" stroke-width="1.2" rx="1.5"/>`;
+        if (ownFin && pw >= 30 && panelH >= 30) {
+          svg += `<text x="${px + pw/2}" y="${py + 10}" fill="#7c3aed" font-size="6.5" font-weight="bold" text-anchor="middle">${escapeHTML(panelFinishOf(wObj, p))}</text>`;
+        }
 
         // Умная маркировка без наложения текста в узких или низких деталях
         if (pw >= 18 && panelH >= 12) {
@@ -4190,7 +4263,7 @@
           const sockText = joinNotes(socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | '), embedText(w, p));
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
-          csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
+          csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${panelHasOwnFinish(w, p) ? panelFinishOf(w, p) : finishLabel(w)}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
         });
 
         if (w.doborH > 0) {
@@ -4223,7 +4296,7 @@
           o: (w.openings || []).map(o => [o.type, o.xWall, o.w, o.h, o.yFloor || 0]),
           s: (w.sockets || []).map(x => [x.xWall, x.yWall, x.posts, x.type]),
           e: (w.embeds || []).map(x => [x.xWall, x.wZone, x.yWall]),
-          m: [w.series, w.baseMat, w.finish, w.designName || '', (w.lightPanels || []).join(',')] })),
+          m: [w.series, w.baseMat, w.finish, w.designName || '', (w.lightPanels || []).join(','), JSON.stringify(w.panelFinish || {})] })),
         price: appState.customPrice
       };
       const str = JSON.stringify(core);
@@ -5226,7 +5299,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
               <div>Основа: <b>${escapeHTML(w.baseMat || appState.baseMat)}</b></div>
               <div>Линейка: <b>${escapeHTML(w.series || appState.series)}</b></div>
-              <div style="grid-column:1/3;">Отделка: <b style="color:#ffcf98;">${escapeHTML(finishLabel(w))} • ${escapeHTML(normBase(w.baseMat))}</b></div>
+              <div style="grid-column:1/3;">Отделка: <b style="color:#ffcf98;">${escapeHTML(panelHasOwnFinish(w, p) ? panelFinishOf(w, p) : finishLabel(w))} • ${escapeHTML(normBase(w.baseMat))}</b></div>
             </div>
 
             ${specialNote ? `<div style="background:rgba(245,158,11,0.15); border:1px solid #e08a2a; border-radius:4px; padding:3px 6px; font-size:10px; color:#ffbc00; font-weight:bold;">⚠️ ${escapeHTML(specialNote)}</div>` : ''}
