@@ -917,10 +917,57 @@
               <button class="btn btn-amber" style="margin-top:8px; height:46px;" onclick="autoShiftLayout()">↔ Сдвинуть раскладку автоматически</button>
             </div>
             <div id="boxShiftStep2" style="display:none; margin-top:8px; font-size:12px; color:#c9ad8f;"></div>
-            <label style="display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:12px; color:#c9ad8f; cursor:pointer;">
-              <input type="checkbox" id="chkSockNoMove" onchange="onSockNoMoveChanged()" style="width:20px; height:20px; margin-top:1px; flex-shrink:0;">
-              <span>Розетки переносить нельзя — вместо этого сдвигать раскладку панелей</span>
-            </label>
+            <div style="margin-top:10px; background:#1b110a; padding:10px 12px; border-radius:10px; border:1px solid #4d3219;">
+              <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:0;">
+                <input type="checkbox" id="chkSockNoMove" onchange="onSockNoMoveChanged()" style="width:20px; height:20px; margin-top:2px; flex-shrink:0;">
+                <div>
+                  <div style="font-weight:700; color:#fff; font-size:12px; text-transform:none;">Розетки переносить нельзя</div>
+                  <div style="font-size:11px; color:#c9ad8f; text-transform:none; font-weight:400;">Обычно розетку у шва переносят на соседнее место (стрелка на чертеже). Включите, если вывод двигать нельзя — тогда сдвигается раскладка панелей.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>📺 Закладные (ТВ, крепления)</span>
+              <span class="badge badge-blue">полоса на всю панель</span>
+            </div>
+            <div style="font-size:12px; color:#c9ad8f; margin:-2px 0 8px;">Закладная идёт горизонтально на всю ширину панели. Укажите высоту от пола и где она нужна: от угла и ширину зоны (например, под ТВ 1200). Ширина 0 — только одна панель в этой точке.</div>
+            <div class="row">
+              <div class="col">
+                <label>Базовый угол замера</label>
+                <select id="inEmbRef">
+                  <option value="left">◀ От ЛЕВОГО угла</option>
+                  <option value="right">От ПРАВОГО угла ▶</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>От угла до начала зоны (мм)</label>
+                <input id="inEmbDist" type="number" inputmode="numeric" value="" placeholder="напр. 1500">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label>Ширина зоны (мм)</label>
+                <input id="inEmbW" type="number" inputmode="numeric" value="" placeholder="0 = одна панель">
+              </div>
+              <div class="col">
+                <label>От чистого пола (мм)</label>
+                <input id="inEmbY" type="number" inputmode="numeric" value="" placeholder="напр. 1100">
+              </div>
+              <div class="col">
+                <label>Под что</label>
+                <select id="inEmbType">
+                  <option value="ТВ">ТВ</option>
+                  <option value="Полка">Полка</option>
+                  <option value="Бра / светильник">Бра / светильник</option>
+                  <option value="Крепление">Другое крепление</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="addEmbed()">+ Добавить закладную</button>
+            <div id="lstEmbeds" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
           </div>
 
         </div>
@@ -1591,6 +1638,7 @@
         finish: 'Ткань рогожка 1й сорт',
         openings: [],
         sockets: [],
+        embeds: [],
         photos: [],
         panels: []
       };
@@ -1668,6 +1716,7 @@
       appState.measureMode = w.measureMode;
       appState.openings = w.openings;
       appState.sockets = w.sockets;
+      appState.embeds = w.embeds || (w.embeds = []);
       appState.photos = w.photos;
       appState.panels = w.panels;
       appState.layoutShift = w.layoutShift || 0;
@@ -1700,6 +1749,7 @@
       w.measureMode = appState.measureMode;
       w.openings = appState.openings;
       w.sockets = appState.sockets;
+      w.embeds = appState.embeds || [];
       w.photos = appState.photos;
       w.panels = appState.panels;
       w.layoutShift = appState.layoutShift || 0;
@@ -3513,7 +3563,74 @@
       showToast('Сдвиг раскладки сброшен');
     }
 
+    // =========================================================================
+    // ЗАКЛАДНЫЕ: горизонтальная полоса на всю ширину панели на заданной высоте
+    // =========================================================================
+    function embedPanels(e, panels) {
+      const x0 = e.xWall, x1 = e.xWall + (e.wZone || 0);
+      return (panels || []).filter(p => {
+        const xHit = e.wZone > 0 ? (x0 < p.endX && x1 > p.startX) : (x0 >= p.startX && x0 < p.endX || (x0 === p.endX && p.endX >= Math.max(...panels.map(q => q.endX))));
+        const y0 = p.yFloor || 0;
+        return xHit && e.yWall >= y0 && e.yWall <= y0 + p.h;
+      });
+    }
+    function panelEmbeds(w, p) {
+      return (w.embeds || []).filter(e => embedPanels(e, w.panels).some(q => q.id === p.id));
+    }
+    function embedText(w, p) {
+      return panelEmbeds(w, p).map(e => `Закладная В=${e.yWall - (p.yFloor || 0)} [${e.type}]`).join('; ');
+    }
+    function joinNotes(a, b) { return [a, b].filter(Boolean).join('; '); }
+
+    function addEmbed() {
+      const ref = document.getElementById('inEmbRef').value;
+      const dist = parseInt(document.getElementById('inEmbDist').value);
+      const wZ = Math.max(0, parseInt(document.getElementById('inEmbW').value) || 0);
+      const y = parseInt(document.getElementById('inEmbY').value);
+      const type = document.getElementById('inEmbType').value;
+      if (isNaN(dist) || isNaN(y)) { alert('Введите расстояние от угла и высоту от пола'); return; }
+      if (y <= 0 || y >= (appState.cleanH || 99999)) { alert('Высота закладной должна быть внутри стены'); return; }
+      const cw = appState.cleanW || 0;
+      // xWall — левый край зоны от левого угла
+      let x = ref === 'left' ? dist : cw - dist - wZ;
+      x = Math.max(0, Math.min(cw, x));
+      appState.embeds = appState.embeds || [];
+      appState.embeds.push({ id: Date.now(), xWall: x, wZone: Math.min(wZ, cw - x), yWall: y, refEdge: ref, refDist: dist, type });
+      document.getElementById('inEmbDist').value = '';
+      document.getElementById('inEmbW').value = '';
+      afterEmbedsChanged();
+    }
+    function removeEmbed(idx) {
+      appState.embeds.splice(idx, 1);
+      afterEmbedsChanged();
+    }
+    function afterEmbedsChanged() {
+      syncAppStateToCurWall();
+      renderEmbedList();
+      calculateEstimate();
+      renderSvgBlueprint();
+      renderTablesAndStock();
+      saveActiveDraft();
+      updateHeaderSummary();
+    }
+    function renderEmbedList() {
+      const lst = document.getElementById('lstEmbeds');
+      if (!lst) return;
+      const list = appState.embeds || [];
+      lst.innerHTML = '';
+      list.forEach((e, idx) => {
+        const ps = embedPanels(e, appState.panels);
+        const d = document.createElement('div');
+        d.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#1b110a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid ' + (ps.length ? '#4d3219' : '#ef4444') + ';';
+        d.innerHTML = `<div><span style="color:#60a5fa; font-weight:bold;">📺 ${escapeHTML(e.type)}</span>: ${e.yWall} мм от пола, ${e.refDist} мм от ${e.refEdge === 'left' ? 'левого' : 'правого'} угла${e.wZone ? ', зона ' + e.wZone + ' мм' : ''}
+          <span style="color:#c9ad8f; font-size:10px;">(${ps.length ? 'панели ' + ps.map(p => '№' + p.id).join(', ') : '⚠️ не попадает на панели'})</span></div>
+          <button onclick="removeEmbed(${idx})" style="min-width:38px; min-height:38px; padding:6px 12px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-weight:bold; font-size:15px; cursor:pointer;" title="Удалить закладную">🗑️</button>`;
+        lst.appendChild(d);
+      });
+    }
+
     function recalculateSockets() {
+      try { renderEmbedList(); } catch (e) {}
       let seamCollision = false;
       let openingCollision = false;
       const openings = appState.openings || [];
@@ -3765,6 +3882,20 @@
         `;
       });
 
+      // 5б. Закладные: синяя полоса на всю ширину каждой задетой панели
+      (wObj.embeds || []).forEach(e => {
+        const ps = embedPanels(e, wObj.panels || []);
+        const ey = floorY - (e.yWall * scale);
+        ps.forEach(p => {
+          const x1 = padLeft + p.startX * scale + 0.8, x2 = padLeft + p.endX * scale - 0.8;
+          svg += `<rect x="${x1}" y="${ey - 1.6}" width="${Math.max(1, x2 - x1)}" height="3.2" fill="#2563eb" fill-opacity="0.75"/>`;
+        });
+        if (ps.length) {
+          const lx = padLeft + ps[0].startX * scale + 3;
+          svg += `<text x="${lx}" y="${ey - 3.5}" fill="#1d4ed8" font-size="5.5" font-weight="bold">закладная ${e.yWall} · ${escapeHTML(e.type)}</text>`;
+        }
+      });
+
       // 6. Отрисовка розеток (включая розетки с коллизиями!)
       const sockets = wObj.sockets || [];
       sockets.forEach(s => {
@@ -3941,7 +4072,7 @@
 
         wallPanels.forEach(p => {
           const socks = wallSockets.filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
+          const sockText = joinNotes(socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; '), embedText(w, p));
           const tr = document.createElement('tr');
 
           let dimText = `${p.h} × ${p.w}`;
@@ -4016,7 +4147,7 @@
         const wallName = w.name || `Стена ${wIdx + 1}`;
         (w.panels || []).forEach(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | ');
+          const sockText = joinNotes(socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | '), embedText(w, p));
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
           csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${w.finish || appState.finish}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
@@ -4051,6 +4182,7 @@
         walls: appState.walls.map(w => ({ d: [w.wTop, w.wMid, w.wBot, w.hLeft, w.hCenter, w.hRight, w.gapWall, w.gapTop, w.stdPanelW, w.doborMode],
           o: (w.openings || []).map(o => [o.type, o.xWall, o.w, o.h, o.yFloor || 0]),
           s: (w.sockets || []).map(x => [x.xWall, x.yWall, x.posts, x.type]),
+          e: (w.embeds || []).map(x => [x.xWall, x.wZone, x.yWall]),
           m: [w.series, w.baseMat, w.finish] })),
         price: appState.customPrice
       };
@@ -4755,7 +4887,7 @@
         }
         wPanels.forEach(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `Выпил В:${s.localH} П:${s.localX} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
+          const sockText = joinNotes(socks.map(s => `Выпил В:${s.localH} П:${s.localX} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; '), embedText(w, p));
           const d = document.createElement('div');
           let note = p.type;
           let dimStr = `${p.h}×${p.w} мм`;
@@ -4883,7 +5015,7 @@
         const wHeader = walls.length > 1 ? `[${w.name || `Стена ${idx + 1}`}]\n` : '';
         const lines = wPanels.map(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
-          const sockText = socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; ');
+          const sockText = joinNotes(socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; '), embedText(w, p));
           let extra = p.isDobor ? ` (заготовка ${p.blankW}мм, клин +${diffW}мм)` : '';
           return `  • ${wPrefix}№${p.id}: ${p.h}×${p.w} мм${extra} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
         }).join('\n');
@@ -4900,6 +5032,14 @@
         ).join('\n');
         return wHeader + lines;
       }).filter(Boolean).join('\n\n');
+
+      const embedsMsgText = walls.map((w, idx) => {
+        const wPrefix = walls.length > 1 ? `С${idx + 1}-` : '';
+        return (w.embeds || []).map(e => {
+          const ps = embedPanels(e, w.panels);
+          return `  • ${e.type}: ${e.yWall} мм от пола, панели ${ps.map(p => wPrefix + '№' + p.id).join(', ') || '—'}`;
+        }).join('\n');
+      }).filter(Boolean).join('\n');
 
       let discountRow = '';
       if (est.discountAmount > 0) {
@@ -4924,6 +5064,7 @@
              `${cuttingText}\n\n` +
              `3. ВЫПИЛЫ ПОД РОЗЕТКИ (GREENEL D68):\n` +
              `${socketsText || '  Без розеток'}\n\n` +
+             `${embedsMsgText ? 'ЗАКЛАДНЫЕ (полоса на всю ширину панели):\n' + embedsMsgText + '\n\n' : ''}` +
              `4. СКЛАДСКАЯ КОМПЛЕКТАЦИЯ (НОРМЫ ЦЕХА НА ОБЪЕКТ):\n` +
              `  - Дюбеля звукоизоляционные (3 шт/пан): ${dowelsCount} шт\n` +
              `  - Акустический герметик (1 на 3 пан): ${sealantCount} тубы\n` +
@@ -5018,6 +5159,13 @@
                 🔴 ВЫПИЛ ПОД РОЗЕТКУ: В=${s.localH} мм (от низа детали), П=${s.localX} мм (от лев. края), центр • выпил ${sockCutout(s).text}${s.moveDx ? ' • ' + sockMoveText(s) : ''}
               </div>
             `).join('');
+          }
+          const embs = panelEmbeds(w, p);
+          if (embs.length) {
+            socksHtml += embs.map(e => `
+              <div style="background:rgba(37,99,235,0.12); border:1px solid #2563eb; border-radius:4px; padding:3px 6px; font-size:10px; color:#1d4ed8; font-weight:700; margin-top:2px;">
+                ▬ ЗАКЛАДНАЯ на всю ширину: В=${e.yWall - (p.yFloor || 0)} мм от низа детали [${escapeHTML(e.type)}]
+              </div>`).join('');
           }
 
           const safeOrderNum = (appState.orderNum || '101').replace(/[^a-zA-Z0-9]/g,'');
