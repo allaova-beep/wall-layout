@@ -980,6 +980,34 @@
             <div id="lstEmbeds" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
           </div>
 
+          <div class="card">
+            <div class="card-title">
+              <span>➕ Доп. детали (ниша под штору и т.п.)</span>
+              <span class="badge badge-blue">как панели</span>
+            </div>
+            <div style="font-size:12px; color:#c9ad8f; margin:-2px 0 8px;">Отдельные детали вне раскладки, например добор ниши под штору. Отделка и основа — как у этой стены, в смете считаются по площади как панели.</div>
+            <div class="row">
+              <div class="col">
+                <label>Название</label>
+                <input id="inExName" type="text" value="Ниша под штору">
+              </div>
+              <div class="col">
+                <label>Длина (мм)</label>
+                <input id="inExW" type="number" inputmode="numeric" placeholder="напр. 200">
+              </div>
+              <div class="col">
+                <label>Высота (мм)</label>
+                <input id="inExH" type="number" inputmode="numeric" placeholder="напр. 77">
+              </div>
+              <div class="col">
+                <label>Кол-во</label>
+                <input id="inExQty" type="number" inputmode="numeric" value="1">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="addExtra()">+ Добавить деталь</button>
+            <div id="lstExtras" style="display:flex; flex-direction:column; gap:5px; margin-top:8px;"></div>
+          </div>
+
         </div>
         <div class="step-actions" style="justify-content:space-between;">
           <button class="btn btn-dark" style="width:auto; min-width:150px;" onclick="goToStep(1)">← Назад к замеру</button>
@@ -1754,6 +1782,7 @@
         openings: [],
         sockets: [],
         embeds: [],
+        extras: [],
         designName: '',
         lightPanels: [],
         panelFinish: {},
@@ -1836,6 +1865,7 @@
       appState.openings = w.openings;
       appState.sockets = w.sockets;
       appState.embeds = w.embeds || (w.embeds = []);
+      appState.extras = w.extras || (w.extras = []);
       if (typeof embedEditIdx !== 'undefined') { embedEditIdx = -1; try { updateEmbedFormMode(); } catch (er) {} }
       appState.designName = w.designName || '';
       appState.lightPanels = w.lightPanels || (w.lightPanels = []);
@@ -1875,6 +1905,7 @@
       w.openings = appState.openings;
       w.sockets = appState.sockets;
       w.embeds = appState.embeds || [];
+      w.extras = appState.extras || [];
       w.designName = appState.designName || '';
       w.lightPanels = appState.lightPanels || [];
       w.panelFinish = appState.panelFinish || {};
@@ -3166,7 +3197,7 @@
       const wallsSummary = appState.walls.map((w, idx) => {
         const gross = ((w.cleanW || 0) * (w.cleanH || 0)) / 1000000;
         const opArea = calculateOpeningsUnionArea(w.openings || []);
-        const net = Math.max(0, gross - opArea);
+        const net = Math.max(0, gross - opArea) + extrasArea(w);
         const fin = normFinish(w.finish), bi = baseIdx(w.baseMat);
         const shares = wallFinishShares(w);
         const parts = shares.map(sh => {
@@ -3865,6 +3896,40 @@
       b.textContent = ed ? '✓ Сохранить закладную' : '+ Добавить закладную';
       c.style.display = ed ? '' : 'none';
     }
+    // ===== Доп. детали (вне раскладки) =====
+    function extrasArea(w) { return (w.extras || []).reduce((a, x) => a + (x.w * x.h * x.qty) / 1e6, 0); }
+    function extrasLines(w) { return (w.extras || []).map(x => `${x.name}: ${x.h}×${x.w} мм × ${x.qty} шт`); }
+    function addExtra() {
+      const name = (document.getElementById('inExName').value || '').trim() || 'Доп. деталь';
+      const wv = parseInt(document.getElementById('inExW').value), hv = parseInt(document.getElementById('inExH').value);
+      const qty = Math.max(1, parseInt(document.getElementById('inExQty').value) || 1);
+      if (!(wv > 0) || !(hv > 0)) { alert('Введите длину и высоту детали'); return; }
+      appState.extras = appState.extras || [];
+      appState.extras.push({ id: Date.now(), name, w: wv, h: hv, qty });
+      document.getElementById('inExW').value = ''; document.getElementById('inExH').value = ''; document.getElementById('inExQty').value = 1;
+      afterExtrasChanged();
+    }
+    function removeExtra(idx) { appState.extras.splice(idx, 1); afterExtrasChanged(); }
+    function afterExtrasChanged() {
+      syncAppStateToCurWall();
+      renderExtrasList();
+      calculateEstimate();
+      renderTablesAndStock();
+      saveActiveDraft();
+      updateHeaderSummary();
+    }
+    function renderExtrasList() {
+      const lst = document.getElementById('lstExtras');
+      if (!lst) return;
+      lst.innerHTML = '';
+      (appState.extras || []).forEach((x, idx) => {
+        const d = document.createElement('div');
+        d.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:6px; background:#1b110a; padding:6px 10px; border-radius:6px; font-size:11px; border:1px solid #4d3219;';
+        d.innerHTML = `<div style="flex:1; min-width:0;"><b style="color:#ffcf98;">${escapeHTML(x.name)}</b>: ${x.h}×${x.w} мм × ${x.qty} шт <span style="color:#c9ad8f; font-size:10px;">(${((x.w * x.h * x.qty) / 1e6).toFixed(3)} м²)</span></div>
+          <button onclick="removeExtra(${idx})" style="min-width:38px; min-height:38px; padding:6px 12px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171; font-weight:bold; font-size:15px; cursor:pointer;" title="Удалить деталь">🗑️</button>`;
+        lst.appendChild(d);
+      });
+    }
     function removeEmbed(idx) {
       appState.embeds.splice(idx, 1);
       if (embedEditIdx === idx) embedEditIdx = -1; else if (embedEditIdx > idx) embedEditIdx--;
@@ -3881,6 +3946,7 @@
       updateHeaderSummary();
     }
     function renderEmbedList() {
+      try { renderExtrasList(); } catch (er) {}
       const lst = document.getElementById('lstEmbeds');
       if (!lst) return;
       const list = appState.embeds || [];
@@ -4400,6 +4466,17 @@
           `;
           tbody.appendChild(tr);
         }
+        (w.extras || []).forEach(x => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b>${escapeHTML(x.name)}</b></td>
+            <td style="color:#ffbc00; font-weight:bold;">${x.h} × ${x.w}${x.qty > 1 ? ' × ' + x.qty + ' шт' : ''}</td>
+            <td>${escapeHTML(w.baseMat || appState.baseMat)}</td>
+            <td>—</td>
+            <td><span class="badge badge-amber">Доп. деталь</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
       });
 
       // 2. Складская ведомость суммируется со всех стен
@@ -4465,6 +4542,9 @@
           csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${panelHasOwnFinish(w, p) ? panelFinishOf(w, p) : finishLabel(w)}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
         });
 
+        (w.extras || []).forEach(x => {
+          csv += `"${wallName}";Доп;${x.w};${x.h};${x.w};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"${String(x.name).replace(/"/g, "'")}";"";"${x.qty} шт"\n`;
+        });
         if (w.doborH > 0) {
           csv += `"${wallName}";Добор;${w.cleanW};${w.doborH};${w.cleanW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"Верхний добор";"${doborEmbedText(w).replace(/"/g, "'")}";"${w.doborMode === 'solid' ? 'Цельные балки' : 'Составной'}"\n`;
         }
@@ -5217,6 +5297,11 @@
           d.innerHTML = `• <b>Верхний добор</b>: ${w.doborH} мм (${w.doborMode === 'solid' ? 'цельные балки' : wPanels.length + ' шт шов-в-шов'})${de ? ' — <span style="color:#ffcf98;">' + escapeHTML(de) + '</span>' : ''}`;
           cutList.appendChild(d);
         }
+        (w.extras || []).forEach(x => {
+          const d = document.createElement('div');
+          d.innerHTML = `• <b>${escapeHTML(x.name)}</b>: ${x.h}×${x.w} мм × ${x.qty} шт (доп. деталь, отделка как у стены)`;
+          cutList.appendChild(d);
+        });
       });
 
       const stock = document.getElementById('mStockItems');
@@ -5317,7 +5402,8 @@
           let extra = p.isDobor ? ` (заготовка ${p.blankW}мм, клин +${diffW}мм)` : '';
           return `  • ${wPrefix}№${p.id}: ${p.h}×${p.w} мм${extra} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
         }).join('\n');
-        return wHeader + (lines || '  • Панелей нет');
+        const ex = (w.extras || []).map(x => `  • ${x.name}: ${x.h}×${x.w} мм × ${x.qty} шт [доп. деталь]`).join('\n');
+        return wHeader + (lines || '  • Панелей нет') + (ex ? '\n' + ex : '');
       }).join('\n\n');
 
       let socketsText = walls.map((w, idx) => {
