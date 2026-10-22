@@ -4175,16 +4175,19 @@
         const ey = floorY - (e.yWall * scale);
         ps.forEach(p => {
           const x1 = padLeft + p.startX * scale + 0.8, x2 = padLeft + p.endX * scale - 0.8;
-          svg += `<rect x="${x1}" y="${ey - 1.6}" width="${Math.max(1, x2 - x1)}" height="3.2" fill="#2563eb" fill-opacity="0.75"/>`;
+          svg += `<rect x="${x1}" y="${ey - 2.2}" width="${Math.max(1, x2 - x1)}" height="4.4" fill="#1d4ed8" fill-opacity="0.95"/>`;
         });
         const dz = embedDobor(e, wObj);
         if (dz) {
           const x1 = padLeft + dz.x0 * scale, x2 = padLeft + (dz.x1 > dz.x0 ? dz.x1 : dz.x0 + 30) * scale;
-          svg += `<rect x="${x1}" y="${ey - 1.6}" width="${Math.max(1, x2 - x1)}" height="3.2" fill="#2563eb" fill-opacity="0.75"/>`;
+          svg += `<rect x="${x1}" y="${ey - 2.2}" width="${Math.max(1, x2 - x1)}" height="4.4" fill="#1d4ed8" fill-opacity="0.95"/>`;
         }
         if (ps.length || dz) {
           const lx = ps.length ? padLeft + ps[0].startX * scale + 3 : padLeft + dz.x0 * scale + 3;
-          svg += `<text x="${lx}" y="${ey - 3.5}" fill="#1d4ed8" font-size="5.5" font-weight="bold">закладная ${e.yWall} · ${escapeHTML(e.type)}</text>`;
+          const lbl = `ЗАКЛАДНАЯ ${e.yWall} · ${escapeHTML(e.type)}`;
+          const lw = lbl.length * 4.6 + 8;
+          svg += `<rect x="${lx - 2}" y="${ey - 14.5}" width="${lw}" height="11" rx="2" fill="#ffffff" stroke="#1e40af" stroke-width="0.8"/>`;
+          svg += `<text x="${lx + 2}" y="${ey - 6.3}" fill="#1e3a8a" font-size="7.5" font-weight="800">${lbl}</text>`;
         }
       });
 
