@@ -1428,7 +1428,7 @@
           <div style="text-align:right;">
             <div style="font-weight:800; color:#ffcf98;" id="mSeriesBase">Optima (60 мм) • МДФ 12 мм</div>
             <div style="color:#c9ad8f;" id="mFinish">Ткань рогожка 1й сорт</div>
-            <div style="font-size:16px; font-weight:900; color:#34d399; margin-top:2px;" id="mPrice">181 292 ₽</div>
+            <div style="display:none;" id="mPrice"></div>
           </div>
         </div>
 
@@ -1454,7 +1454,7 @@
           <div id="mStockItems" style="margin-top:4px; display:grid; grid-template-columns: 1fr 1fr; gap:4px;"></div>
         </div>
 
-        <div>
+        <div style="display:none;"><!-- цена в наряд для цеха не выводится -->
           <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">5. Калькуляция и смета заказа клиенту (фабричный расчет):</b>
           <div id="mPriceBreakdown" style="margin-top:4px; font-family:monospace; display:flex; flex-direction:column; gap:3px;"></div>
         </div>
@@ -1462,7 +1462,7 @@
         <div id="mSignSection" class="pdf-keep" style="border-top:1px solid #4d3219; padding-top:8px;"></div>
 
         <div id="mPhotosSection" style="display:none;">
-          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">6. Фотофиксация объекта (прикрепленные фото):</b>
+          <b style="color:#c9ad8f; font-size:10px; text-transform:uppercase;">5. Фотофиксация объекта (прикрепленные фото):</b>
           <div id="mPhotosList" style="margin-top:6px; display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:8px;"></div>
         </div>
       </div>
@@ -4408,6 +4408,7 @@
 
       const dowels = totalAllPanels * 3;
       const sealant = Math.ceil(totalAllPanels / 3);
+      const cab = cableMeters();
 
       stock.innerHTML = `
         <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
@@ -4430,9 +4431,25 @@
           <span>🧱 Минвата в подрозетники (звукоизоляция):</span>
           <b style="color:#ffcf98;">${totalAllSockets > 0 ? '1 упаковка 200г' : 'не требуется'}</b>
         </div>
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
+          <span>🔌 Кабель 3×2,5 к розеткам (1 м на розетку):</span>
+          <b style="color:#ffcf98;">${cab.sock ? cab.sock + ' м' : 'нет розеток'}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; background:#1b110a; padding:6px 10px; border-radius:6px; border:1px solid #311c0d;">
+          <span>💡 Кабель 3×1,5 к подсветке (1 м на панель с подсветкой):</span>
+          <b style="color:#ffcf98;">${cab.light ? cab.light + ' м' : 'нет подсветки'}</b>
+        </div>
       `;
     }
 
+    // Кабель: 3×2,5 — 1 м на каждую розетку, 3×1,5 — 1 м на каждую панель с подсветкой (со всех стен)
+    const CABLE_SOCKET_M = 1, CABLE_LIGHT_M = 1;
+    function cableMeters() {
+      const walls = (appState.walls && appState.walls.length) ? appState.walls : [appState];
+      let sock = 0, light = 0;
+      walls.forEach(w => { sock += (w.sockets || []).length; light += wallLightMeters(w).n; });
+      return { sock: sock * CABLE_SOCKET_M, light: light * CABLE_LIGHT_M };
+    }
     function downloadCuttingCSV() {
       if (!requireMeasuredOrder()) return;
       ensureOrderWalls(appState);
@@ -5353,11 +5370,8 @@
              `  - Клей Момент 300г: 1 тюбик\n` +
              `${est.lightPanels ? '  - Подсветка: лента ' + est.lightM.toFixed(1) + ' м + направляющая ' + est.lightM.toFixed(1) + ' м (' + est.lightPanels + ' пан. с 2 сторон)\n' : ''}` +
              `  - Разметка Discus: ${totalSocketsCount > 0 ? (totalSocketsCount * 3) + ' наметчиков + ' + (totalSocketsCount * 3) + ' ответных частей' : 'нет'}\n` +
-             `  - Минвата в подрозетники: ${totalSocketsCount > 0 ? '1 порция 200г на заказ' : 'нет'}\n\n` +
-             `5. РАСЧЕТНАЯ СМЕТА:\n` +
-             (est.lines || []).filter(l => !/^Скидка клиенту/.test(l.label)).map(l => `  - ${l.label}: ${estLineText(l)}\n`).join('') +
-             discountRow +
-             `ИТОГО К ОПЛАТЕ: ${finalPrice.toLocaleString('ru-RU')} руб.\n` +
+             `  - Минвата в подрозетники: ${totalSocketsCount > 0 ? '1 порция 200г на заказ' : 'нет'}\n` +
+             (() => { const c = cableMeters(); return `  - Кабель 3×2,5 к розеткам: ${c.sock ? c.sock + ' м' : 'нет'}\n  - Кабель 3×1,5 к подсветке: ${c.light ? c.light + ' м' : 'нет'}\n\n`; })() +
              (appState.signature ? `ПОДПИСАНО КЛИЕНТОМ: ${appState.signature.name || ''} ${formatSignDate(appState.signature.at)} (подпись в PDF наряда)\n` : `ПОДПИСЬ КЛИЕНТА: нет\n`) +
              `==========================================`;
     }
