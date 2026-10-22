@@ -1498,8 +1498,8 @@
       <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
         <button class="btn btn-dark" style="width:auto; padding:0 14px;" onclick="closeOrderModal()">Закрыть</button>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="downloadOrderPDF()">📥 Скачать PDF (в память)</button>
-          <button class="btn btn-dark" style="width:auto; padding:0 14px;" onclick="window.print()">🖨️ Системная печать</button>
+          <button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="downloadOrderPDF()">📥 Скачать PDF</button>
+          <button class="btn btn-dark" style="width:auto; padding:0 14px;" onclick="printOrderSheet()">🖨️ Печать</button>
           <button class="btn btn-success" style="width:auto; padding:0 16px;" onclick="sendToFactoryEmail()">🚀 Отправить на почту</button>
         </div>
       </div>
@@ -1529,7 +1529,7 @@
         <button class="btn btn-dark" style="width:auto; padding:0 14px;" onclick="closeLabelsModal()">Закрыть</button>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-primary" style="width:auto; padding:0 16px;" onclick="downloadLabelsPDF()">📥 Скачать PDF наклеек (в память)</button>
-          <button class="btn btn-amber" style="width:auto; padding:0 16px;" onclick="window.print()">🖨️ Системная печать</button>
+          <button class="btn btn-amber" style="width:auto; padding:0 16px;" onclick="printOrderSheet()">🖨️ Печать</button>
         </div>
       </div>
     </div>
@@ -5633,24 +5633,61 @@
 
     // PDF наряда через системную печать браузера: «Сохранить как PDF».
     // Даёт чёткий векторный документ на А4, многостраничный, без обрезки.
-    function downloadOrderPDF() {
+    function printOrderSheet() {
+      const sheet = document.getElementById('printSheet');
+      sheet.classList.add('pdf-light'); document.body.classList.add('print-order');
+      const done = () => { sheet.classList.remove('pdf-light'); document.body.classList.remove('print-order'); window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done);
+      setTimeout(() => { window.print(); setTimeout(done, 1500); }, 200);
+    }
+    async function downloadOrderPDF() {
       if (!requireMeasuredOrder()) return;
       if (!confirmUnsignedSend()) return;
       openOrderModal();
       const sheet = document.getElementById('printSheet');
-      sheet.classList.add('pdf-light');
-      document.body.classList.add('print-order');
-      const prevTitle = document.title;
-      document.title = `Наряд_${(appState.orderNum || 'Заказ').replace(/\s+/g, '_')}`;
-      const cleanup = () => {
-        sheet.classList.remove('pdf-light');
-        document.body.classList.remove('print-order');
-        document.title = prevTitle;
-        window.removeEventListener('afterprint', cleanup);
-      };
-      window.addEventListener('afterprint', cleanup);
-      showToast('В окне печати выберите «Сохранить как PDF»', '📄', '#ffcf98');
-      setTimeout(() => { window.print(); setTimeout(cleanup, 1500); }, 300);
+      const fname = `Наряд_${(appState.orderNum || 'Заказ').replace(/[\\/:*?"<>|\s]+/g, '_')}.pdf`;
+      // рендерим копию листа вне модального окна, фиксированной ширины — так ничего не обрезается
+      const holder = document.createElement('div');
+      holder.style.cssText = 'position:absolute; left:0; top:0; width:760px; background:#fff; z-index:-1;';
+      const clone = sheet.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.classList.add('pdf-light');
+      clone.style.cssText += '; width:720px; max-width:720px; box-sizing:border-box; max-height:none; overflow:hidden;';
+      // чертёж html2canvas рисует плохо — заменяем каждый svg готовой картинкой
+      for (const sv of [...clone.querySelectorAll('svg')]) {
+        try {
+          const { img, vw, vh } = await svgToImage(sv.outerHTML);
+          const c = document.createElement('canvas'); c.width = vw * 3; c.height = vh * 3;
+          const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(img, 0, 0, c.width, c.height);
+          const im = document.createElement('img'); im.src = c.toDataURL('image/png');
+          im.style.cssText = 'width:100%; height:auto; display:block;';
+          sv.replaceWith(im);
+        } catch (er) { console.warn(er); }
+      }
+      holder.appendChild(clone);
+      document.body.appendChild(holder);
+      const prevScroll = window.scrollY;
+      window.scrollTo(0, 0);
+      showToast('Готовлю PDF…', '📄', '#ffcf98');
+      try {
+        await new Promise(r => setTimeout(r, 150));
+        await html2pdf().set({
+          margin: [8, 8, 8, 8],
+          filename: fname,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, x: 0, y: 0, scrollX: 0, scrollY: 0, width: 760, windowWidth: 760 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-keep', 'svg', 'img'] }
+        }).from(clone).save();
+        showToast('PDF сохранён: ' + fname, '✅', '#10b981');
+      } catch (e) {
+        console.error(e);
+        showToast('Не получилось сохранить PDF, открываю печать', '⚠️', '#e08a2a');
+        printOrderSheet();
+      } finally {
+        holder.remove();
+        window.scrollTo(0, prevScroll);
+      }
     }
 
     // Инициализация при старте
