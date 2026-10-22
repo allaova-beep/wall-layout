@@ -3775,21 +3775,29 @@
       const base = cH - H;
       if (e.yWall < base || e.yWall > cH) return null;
       const cw = w.cleanW || 0;
-      const x0 = Math.max(0, e.xWall), x1 = e.wZone > 0 ? Math.min(cw, e.xWall + e.wZone) : x0;
-      return { x0, x1, local: e.yWall - base };
+      let x0 = Math.max(0, e.xWall), x1 = e.wZone > 0 ? Math.min(cw, e.xWall + e.wZone) : x0;
+      let ids = [];
+      if (w.doborMode !== 'solid') {
+        // составной добор нарезан по панелям — закладная идёт на всю ширину куска над задетыми панелями
+        const cols = embedPanels({ xWall: e.xWall, wZone: e.wZone, yWall: 1 }, (w.panels || []).filter(p => !p.yFloor));
+        if (cols.length) { x0 = Math.min(...cols.map(p => p.startX)); x1 = Math.max(...cols.map(p => p.endX)); ids = cols.map(p => p.id); }
+      }
+      return { x0, x1, local: e.yWall - base, ids };
     }
     function doborEmbedText(w) {
       return (w.embeds || []).map(e => {
         const d = embedDobor(e, w);
         if (!d) return '';
-        return `Закладная В=${d.local} от низа добора, ${d.x1 > d.x0 ? 'X ' + d.x0 + '–' + d.x1 + ' мм' : 'X ' + d.x0 + ' мм'} от лев. угла [${e.type}]`;
+        const where = d.ids.length ? 'куски над панелями ' + d.ids.map(i => '№' + i).join(', ') : (d.x1 > d.x0 ? 'X ' + d.x0 + '–' + d.x1 + ' мм' : 'X ' + d.x0 + ' мм') + ' от лев. угла';
+        return `Закладная В=${d.local} от низа добора, ${where}, на всю ширину куска [${e.type}]`;
       }).filter(Boolean).join('; ');
     }
     function embedWhere(e, w) {
       const ps = embedPanels(e, w.panels);
       const parts = [];
       if (ps.length) parts.push('панели ' + ps.map(p => '№' + p.id).join(', '));
-      if (embedDobor(e, w)) parts.push('верхний добор');
+      const dz = embedDobor(e, w);
+      if (dz) parts.push('верхний добор' + (dz.ids.length ? ' над №' + dz.ids.join(', №') : ''));
       return parts.join(' + ');
     }
     function panelEmbeds(w, p) {
