@@ -1628,6 +1628,26 @@
       if (max === min) return null;
       return { bot, top, mid: md, bow: Math.abs(md - (bot + top) / 2) >= 2, max, min, blank: max };
     }
+    // Клин верхнего добора: крайний правый кусок (шов-в-шов) или правый торец цельной балки
+    function doborWedge(w) {
+      if (!w || !(w.doborH > 0)) return null;
+      const dp = (w.panels || []).find(p => p.isDobor && !p.yFloor);
+      if (!dp) return null;
+      const d = wedgeOf(w, { isDobor: true, w: dp.w, yFloor: dp.h, h: w.doborH });
+      if (!d) return null;
+      if (w.doborMode === 'solid') {
+        const base = (w.cleanW || 0) - dp.w;
+        return { solid: true, bot: base + d.bot, top: base + d.top, mid: base + d.mid, bow: d.bow };
+      }
+      return { solid: false, over: dp.id, bot: d.bot, top: d.top, mid: d.mid, bow: d.bow };
+    }
+    function doborWedgeText(w) {
+      const d = doborWedge(w);
+      if (!d) return '';
+      return d.solid
+        ? `КЛИН: длина балки низ ${d.bot} мм → верх ${d.top} мм (правый торец под углом)`
+        : `КЛИН крайнего правого куска над №${d.over}: низ ${d.bot} мм → верх ${d.top} мм (срез по правому краю)`;
+    }
     function wedgeText(wd) {
       if (!wd) return '';
       return `КЛИН: низ ${wd.bot} мм → верх ${wd.top} мм${wd.bow ? `, середина ${wd.mid} мм` : ''}`;
@@ -4500,7 +4520,7 @@
             <td><b>Добор верха</b></td>
             <td style="color:#ffbc00; font-weight:bold;">${(() => { const pcs = doborPieces(w, 0, w.cleanW); return (pcs.length > 1 || (pcs[0] && pcs[0].h !== w.doborH)) ? pcs.map(pc => `${pc.h} × ${pc.x1 - pc.x0}`).join(' + ') + (w.doborMode === 'solid' ? '' : ' (нарезать по раскладке)') : `${w.doborH} × ${w.doborMode === 'solid' ? w.cleanW : 'по раскладке ' + w.stdPanelW}`; })()}</td>
             <td>${escapeHTML(w.baseMat || appState.baseMat)}</td>
-            <td style="font-size:11px; color:#60a5fa;">${escapeHTML(doborEmbedText(w)) || '—'}</td>
+            <td style="font-size:11px; color:#60a5fa;">${doborWedgeText(w) ? `<b style="color:#ffbc00;">${escapeHTML(doborWedgeText(w))}</b><br>` : ''}${escapeHTML(doborEmbedText(w)) || (doborWedgeText(w) ? '' : '—')}</td>
             <td><span class="badge badge-amber">${w.doborMode === 'solid' ? 'Цельные балки' : wallPanels.length + ' шт шов-в-шов'}</span></td>
           `;
           tbody.appendChild(tr);
@@ -4586,7 +4606,7 @@
           csv += `"${wallName}";Доп;${x.w};${x.h};${x.w};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"${String(x.name).replace(/"/g, "'")}";"";"${x.qty} шт"\n`;
         });
         if (w.doborH > 0) {
-          csv += `"${wallName}";Добор;${w.cleanW};${w.doborH};${w.cleanW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"Верхний добор";"${doborEmbedText(w).replace(/"/g, "'")}";"${w.doborMode === 'solid' ? 'Цельные балки' : 'Составной'}"\n`;
+          csv += `"${wallName}";Добор;${w.cleanW};${w.doborH};${w.cleanW};"${w.baseMat || appState.baseMat}";"${finishLabel(w)}";"Верхний добор";"${doborEmbedText(w).replace(/"/g, "'")}";"${w.doborMode === 'solid' ? 'Цельные балки' : 'Составной'}${doborWedgeText(w) ? '. ' + doborWedgeText(w) : ''}"\n`;
         }
       });
 
@@ -5335,7 +5355,8 @@
         if (w.doborH > 0) {
           const d = document.createElement('div');
           const de = doborEmbedText(w);
-          d.innerHTML = `• <b>Верхний добор</b>: ${w.doborH} мм (${w.doborMode === 'solid' ? 'цельные балки' : wPanels.length + ' шт шов-в-шов'})${de ? ' — <span style="color:#ffcf98;">' + escapeHTML(de) + '</span>' : ''}`;
+          const dw = doborWedgeText(w);
+          d.innerHTML = `• <b>Верхний добор</b>: ${w.doborH} мм (${w.doborMode === 'solid' ? 'цельные балки' : wPanels.length + ' шт шов-в-шов'})${dw ? ' — <b style="color:#b45309;">' + escapeHTML(dw) + '</b>' : ''}${de ? ' — <span style="color:#ffcf98;">' + escapeHTML(de) + '</span>' : ''}`;
           cutList.appendChild(d);
         }
         (w.extras || []).forEach(x => {
@@ -5429,7 +5450,7 @@
                `  - Отклонение плоскости: лево ${w.devLeft||0}мм, центр ${w.devCenter||0}мм, право ${w.devRight||0}мм\n` +
                `  - Отделка: ${finishLabel(w)} (${normBase(w.baseMat)})\n` +
                `  - Проемы стены:\n${openText}\n` +
-               `  - Верхний добор: ${w.doborH > 0 ? (w.doborMode === 'solid' ? 'Цельные балки' : 'Шов-в-шов') + ' (' + w.doborH + ' мм)' : 'Не требуется'}`;
+               `  - Верхний добор: ${w.doborH > 0 ? (w.doborMode === 'solid' ? 'Цельные балки' : 'Шов-в-шов') + ' (' + w.doborH + ' мм)' + (doborWedgeText(w) ? '. ' + doborWedgeText(w) : '') : 'Не требуется'}`;
       }).join('\n\n');
 
       let cuttingText = walls.map((w, idx) => {
