@@ -99,6 +99,7 @@
       background-image: radial-gradient(#4d3219 1px, transparent 1px); background-size: 14px 14px;
     }
     svg { width: 100%; height: auto; max-height: 440px; display: block; }
+    svg.pa-wedge, .pdf-light svg.pa-wedge { width:120px !important; height:96px !important; max-height:96px !important; background:#ffffff !important; }
 
     /* Таблицы */
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -1611,6 +1612,42 @@
       return (w.sockets || []).reduce((acc, s) => acc + Math.ceil(sockCutout(s).n / 2), 0);
     }
 
+    // Клин-добор: реальная ширина правой панели внизу / в середине / вверху по замерам стены
+    function wedgeOf(w, p) {
+      if (!w || !p || !p.isDobor) return null;
+      const wT = +w.wTop || 0, wB = +w.wBot || 0, wM = +w.wMid || 0;
+      if (!wT || !wB) return null;
+      const ws = [wT, wM, wB].filter(v => v > 0);
+      const minW = Math.min(...ws);
+      const H = +w.cleanH || 2440;
+      const mid = wM || (wT + wB) / 2;
+      const at = y => { y = Math.max(0, Math.min(H, y)); return y <= H / 2 ? wB + (mid - wB) * (y / (H / 2)) : mid + (wT - mid) * ((y - H / 2) / (H / 2)); };
+      const y0 = p.yFloor || 0, y1 = y0 + (p.h || 0);
+      const bot = Math.round(p.w + at(y0) - minW), top = Math.round(p.w + at(y1) - minW), md = Math.round(p.w + at((y0 + y1) / 2) - minW);
+      const max = Math.max(bot, top, md), min = Math.min(bot, top, md);
+      if (max === min) return null;
+      return { bot, top, mid: md, bow: Math.abs(md - (bot + top) / 2) >= 2, max, min, blank: max };
+    }
+    function wedgeText(wd) {
+      if (!wd) return '';
+      return `КЛИН: низ ${wd.bot} мм → верх ${wd.top} мм${wd.bow ? `, середина ${wd.mid} мм` : ''}`;
+    }
+    function wedgeSvg(wd, h) {
+      if (!wd) return '';
+      const W = 120, Hh = 96, k = 44 / wd.max, x0 = 22;
+      const bx = x0 + wd.bot * k, tx = x0 + wd.top * k, mx = x0 + wd.mid * k, y0 = 10, y1 = Hh - 12, ym = (y0 + y1) / 2;
+      const right = wd.bow ? `L${tx.toFixed(1)} ${y0} L${mx.toFixed(1)} ${ym} L${bx.toFixed(1)} ${y1}` : `L${tx.toFixed(1)} ${y0} L${bx.toFixed(1)} ${y1}`;
+      return `<svg class="pa-wedge" viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" style="display:block;background:#fff;border-radius:4px">
+        <path d="M${x0} ${y1} L${x0} ${y0} ${right} Z" fill="#fde7c7" stroke="#b45309" stroke-width="1.2"/>
+        <rect x="${x0}" y="${y0}" width="${(wd.min * k).toFixed(1)}" height="${y1 - y0}" fill="none" stroke="#b45309" stroke-width=".5" stroke-dasharray="2,2"/>
+        <text x="${x0 + wd.top * k / 2}" y="${y0 - 2}" font-size="8" text-anchor="middle" fill="#7c2d12" font-weight="bold">${wd.top}</text>
+        <text x="${x0 + wd.bot * k / 2}" y="${y1 + 9}" font-size="8" text-anchor="middle" fill="#7c2d12" font-weight="bold">${wd.bot}</text>
+        ${wd.bow ? `<text x="${mx + 3}" y="${ym + 3}" font-size="7.5" fill="#7c2d12">${wd.mid}</text>` : ''}
+        <text x="${x0 - 3}" y="${ym}" font-size="7.5" text-anchor="end" fill="#7c2d12" transform="rotate(-90 ${x0 - 6} ${ym})">${h}</text>
+        <text x="${Math.max(bx, tx) + 4}" y="${y0 + 10}" font-size="6.5" fill="#b45309">срез</text>
+      </svg>`;
+    }
+
     function escapeHTML(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -3105,7 +3142,7 @@
       } else if (diffW > 0) {
         bBadge.className = "badge badge-amber";
         bBadge.innerText = `Стена кривая на ${diffW} мм`;
-        bAdvice.innerText = `Ширина гуляет на ${diffW} мм — цех учтёт, правую панель подрежете на месте.${devText}`;
+        bAdvice.innerText = `Ширина гуляет на ${diffW} мм — правая панель пойдёт клином, цех выпилит её по размерам из листа раскроя.${devText}`;
       } else {
         bBadge.className = "badge badge-green";
         bBadge.innerText = "Стена ровная";
@@ -4192,13 +4229,14 @@
         if (pw >= 18 && panelH >= 12) {
           if (pw < 45 && panelH >= 60) {
             const cx = px + pw/2, cy = py + panelH/2;
-            svg += `<text x="${cx}" y="${cy + 3}" transform="rotate(-90 ${cx} ${cy})" fill="#fff7ee" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
+            const _wd = wedgeOf(wObj, p);
+            svg += `<text x="${cx}" y="${cy + 3}" transform="rotate(-90 ${cx} ${cy})" fill="#fff7ee" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${_wd ? `клин низ ${_wd.bot} / верх ${_wd.top} × ${p.h}` : `${p.w}×${p.h}`}</text>`;
           } else if (panelH < 35 || pw < 45) {
             svg += `<text x="${px + pw/2}" y="${py + panelH/2 + 3}" fill="#fff7ee" font-size="7" font-weight="bold" text-anchor="middle">№${p.id} ${p.w}×${p.h}</text>`;
           } else {
             svg += `
               <text x="${px + pw/2}" y="${py + panelH/2 - 4}" fill="#fff7ee" font-size="8" font-weight="bold" text-anchor="middle">№${p.id}${isDobor ? ' (клин)' : ''}</text>
-              <text x="${px + pw/2}" y="${py + panelH/2 + 7}" fill="${isDobor ? '#ffbc00' : '#c9ad8f'}" font-size="7" text-anchor="middle">${p.w} мм</text>
+              <text x="${px + pw/2}" y="${py + panelH/2 + 7}" fill="${isDobor ? '#ffbc00' : '#c9ad8f'}" font-size="7" text-anchor="middle">${(() => { const d = wedgeOf(wObj, p); return d ? `низ ${d.bot} / верх ${d.top}` : `${p.w} мм`; })()}</text>
               <text x="${px + pw/2}" y="${py + panelH - 4}" fill="#ffcf98" font-size="6.5" text-anchor="middle">H=${p.h}</text>
             `;
           }
@@ -4438,7 +4476,8 @@
 
           let dimText = `${p.h} × ${p.w}`;
           if (p.isDobor && p.blankW) {
-            dimText = `<b style="color:#ffbc00;">${p.h} × ${p.w}</b> (загот. ${p.blankW}мм, клин +${p.diffW}мм)`;
+            const _wd = wedgeOf(w, p);
+            dimText = _wd ? `<b style="color:#ffbc00;">${p.h} × ${_wd.bot}→${_wd.top}</b> (${wedgeText(_wd)}; заготовка ${_wd.blank} мм)` : `<b style="color:#ffbc00;">${p.h} × ${p.w}</b>`;
           } else if (p.isDoorOverhead) {
             dimText = `<b style="color:#ffbc00;">${p.h} × ${p.w}</b> (над проемом)`;
           }
@@ -4539,7 +4578,8 @@
           const sockText = joinNotes(socks.map(s => `В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join(' | '), embedText(w, p));
           const blankW = p.blankW || p.w;
           const partId = (appState.walls.length > 1) ? `${wIdx + 1}-${p.id}` : `${p.id}`;
-          csv += `"${wallName}";${partId};${p.w};${p.h};${blankW};"${w.baseMat || appState.baseMat}";"${panelHasOwnFinish(w, p) ? panelFinishOf(w, p) : finishLabel(w)}";"${p.type}";"${sockText}";"${p.isDobor ? 'Клин стены' : ''}"\n`;
+          const _wd = wedgeOf(w, p);
+          csv += `"${wallName}";${partId};${p.w};${p.h};${_wd ? _wd.blank : blankW};"${w.baseMat || appState.baseMat}";"${panelHasOwnFinish(w, p) ? panelFinishOf(w, p) : finishLabel(w)}";"${p.type}";"${sockText}";"${_wd ? wedgeText(_wd) + ', срез по правому краю' : ''}"\n`;
         });
 
         (w.extras || []).forEach(x => {
@@ -5283,8 +5323,9 @@
           const d = document.createElement('div');
           let note = p.type;
           let dimStr = `${p.h}×${p.w} мм`;
-          if (p.isDobor && p.blankW) {
-            dimStr += ` (заготовка ${p.blankW}мм, клин +${p.diffW || diffW}мм)`;
+          const _wd = wedgeOf(w, p);
+          if (_wd) {
+            dimStr = `${p.h} мм, <b style="color:#b45309;">${wedgeText(_wd)}</b> (заготовка ${_wd.blank} мм, срез по правому краю, левый край ровный)`;
           }
           const pLabel = walls.length > 1 ? `С${wallIdx + 1}-№${p.id}` : `№${p.id}`;
           d.innerHTML = `• <b>${pLabel}</b>: ${dimStr} — <span style="color:#ffcf98;">${escapeHTML(sockText || note)}</span>`;
@@ -5399,8 +5440,9 @@
         const lines = wPanels.map(p => {
           const socks = (w.sockets || []).filter(s => s.panelId === p.id);
           const sockText = joinNotes(socks.map(s => `Выпил В=${s.localH} П=${s.localX} ${sockCutout(s).text} [${s.type}]${s.moveDx ? ' ' + sockMoveText(s) : ''}`).join('; '), embedText(w, p));
-          let extra = p.isDobor ? ` (заготовка ${p.blankW}мм, клин +${diffW}мм)` : '';
-          return `  • ${wPrefix}№${p.id}: ${p.h}×${p.w} мм${extra} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
+          const _wd = wedgeOf(w, p);
+          const dims = _wd ? `${p.h} мм, ${wedgeText(_wd)} (заготовка ${_wd.blank} мм, срез по правому краю)` : `${p.h}×${p.w} мм`;
+          return `  • ${wPrefix}№${p.id}: ${dims} [${p.type}] ${sockText ? '-> ' + sockText : ''}`;
         }).join('\n');
         const ex = (w.extras || []).map(x => `  • ${x.name}: ${x.h}×${x.w} мм × ${x.qty} шт [доп. деталь]`).join('\n');
         return wHeader + (lines || '  • Панелей нет') + (ex ? '\n' + ex : '');
@@ -5528,7 +5570,8 @@
             typeName = 'КЛИН-ДОБОР (ПРАВАЯ СТОРОНА)';
             typeColor = '#e08a2a';
             const blankW = p.blankW || p.w;
-            specialNote = `Заготовка ${blankW} мм (припуск на клин стены +${diffW} мм). Прирезать по лазеру по месту.`;
+            const _wd = wedgeOf(w, p);
+            specialNote = _wd ? `${wedgeText(_wd)}. Левый край ровный, клин срезать по правому краю.` : `Заготовка ${blankW} мм.`;
           }
 
           let socksHtml = '<div style="color:#10b981; font-size:10px; font-weight:700;">✓ Выпилов под розетки нет</div>';
@@ -5575,9 +5618,9 @@
             <div style="background:#1b110a; padding:6px 8px; border-radius:6px; border:1px solid #4d3219;">
               <div style="font-size:10px; color:#c9ad8f; text-transform:uppercase;">Габарит чистового распила:</div>
               <div style="font-size:18px; font-weight:900; color:#34d399; font-family:monospace; margin-top:1px;">
-                ${hVal} × ${p.w} мм
+                ${(() => { const d = wedgeOf(w, p); return d ? `${hVal} × ${d.bot}→${d.top} мм` : `${hVal} × ${p.w} мм`; })()}
               </div>
-              ${p.blankW ? `<div style="font-size:10.5px; color:#ffbc00; font-weight:bold;">Заготовка в цеху: ${hVal} × ${p.blankW} мм (клин +${diffW}мм)</div>` : ''}
+              ${(() => { const d = wedgeOf(w, p); return d ? `<div style="font-size:10.5px; color:#ffbc00; font-weight:bold;">Клин: низ ${d.bot} → верх ${d.top} мм${d.bow ? `, середина ${d.mid}` : ''} • заготовка ${hVal} × ${d.blank} мм</div><div style="margin-top:4px">${wedgeSvg(d, hVal)}</div>` : (p.blankW ? `<div style="font-size:10.5px; color:#ffbc00; font-weight:bold;">Заготовка в цеху: ${hVal} × ${p.blankW} мм</div>` : ''); })()}
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
